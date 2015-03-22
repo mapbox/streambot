@@ -1,0 +1,51 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "A simple robotropism example",
+  "Resources": {
+    "RobotropismStack": {
+      "Type": "AWS::CloudFormation::Stack",
+      "Properties": {
+        "TemplateUrl": "",
+        "Parameters": {
+          "AlarmEmail": "my-email@domain.com"
+        },
+        "MetricName": "example"
+      }
+    },
+    "LambdaPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "DependsOn": "RobotropismStack",
+      "Properties": {
+        "PolicyName": "uploadrecords",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                "arn:aws:s3:::my-bucket/example-records/*"
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Fn::GetAtt" : [
+              "RobotropismStack" ,
+              "Outputs.LambdaExecutionRole"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "RobotropismStack": {
+      "Value": {
+        "Ref": "RobotropismStack"
+      }
+    }
+  }
+}

@@ -1,0 +1,212 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Read and respond to a Kinesis stream using Lambda",
+  "Parameters": {
+    "GitSha": {
+      "Type": "String",
+      "Description": "GitSha of streambot to deploy",
+      "Default": ""
+    },
+    "AlarmEmail": {
+      "Type": "String",
+      "Description": "Email address to receive notifications of errored runs",
+      "Default": "devnull@mapbox.com"
+    },
+    "MetricName": {
+      "Type": "String",
+      "Description": "The name of a CloudWatch metric that will receive data counting successful and erroneous completion of lambda functions"
+    }
+  },
+  "Resources": {
+    "Stream": {
+      "Type" : "AWS::Kinesis::Stream",
+        "Properties" : {
+          "ShardCount" : 1
+        }
+    },
+    "AlarmSNS": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "Subscription": [
+          {
+            "Endpoint": { "Ref": "AlarmEmail" },
+            "Protocol": "email"
+          }
+        ]
+      }
+    },
+    "ErrorAlarm": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "ActionsEnabled": "true",
+        "AlarmActions": [
+          { "Ref": "AlarmSNS" }
+        ],
+        "AlarmDescription": "Can be triggered if the lambda function encounters an unexpected error",
+        "ComparisonOperator": "GreaterThanThreshold",
+        "Dimensions": [
+          {
+            "Name": "Status",
+            "Value": "Error"
+          }
+        ],
+        "EvaluationPeriods": 1,
+        "MetricName": {
+          "Ref": "MetricName"
+        },
+        "Namespace": "streambot",
+        "Period": "60",
+        "Statistic": "Sum",
+        "Threshold": "0"
+      }
+    },
+    "InvocationRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/lambda/",
+        "Policies": [
+          {
+            "PolicyName": "InvocationPolicy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kinesis:DescribeStream",
+                    "kinesis:GetRecords",
+                    "kinesis:GetShardIterator",
+                    "kinesis:ListStreams"
+                  ],
+                  "Resource": {
+                    "Ref": "Stream"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/lambda/",
+        "Policies": [
+          {
+            "PolicyName": "ExecutionPolicy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "cloudwatch:PutMetricData"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ProviderRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/kinesis/",
+        "Policies": [
+          {
+            "PolicyName": "ExecutionPolicy",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kinesis:*"
+                  ],
+                  "Resource": {
+                    "Ref": "Stream"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "KinesisStream": {
+      "Ref": "Stream"
+    },
+    "LambdaInvocationRole": {
+      "Value": {
+        "Fn::GetAtt" : [
+          "InvocationRole",
+          "Arn"
+        ]
+      }
+    },
+    "LambdaExecutionRole": {
+      "Value": {
+        "Fn::GetAtt" : [
+          "ExecutionRole",
+          "Arn"
+        ]
+      }
+    },
+    "KinesisAdminRole": {
+      "Value": {
+        "Fn::GetAtt": [
+          "ProviderRole",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

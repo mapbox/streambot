@@ -1,0 +1,30 @@
+{
+  "name": "streambot",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test/*.test.js"
+  },
+  "bin": {
+    "wrap": "bin/wrap.js",
+    "bundle": "bin/bundle",
+    "deploy": "bin/deploy.js",
+    "template-url": "bin/template-url.js"
+  },
+  "author": "Mapbox",
+  "license": "ISC",
+  "devDependencies": {
+    "jscs": "^1.11.3",
+    "jshint": "^2.6.3",
+    "tape": "^3.5.0"
+  },
+  "jscsConfig": {
+    "preset": "airbnb",
+    "requireCamelCaseOrUpperCaseIdentifiers": false
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1.18",
+    "queue-async": "^1.0.7"
+  }
+}

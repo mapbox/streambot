@@ -1,0 +1,12 @@
+{
+  "name": "streambot-example",
+  "version": "0.0.1",
+  "description": "example of using streambot",
+  "dependencies": {
+    "aws-sdk": "^2.1.18",
+    "streambot": "../"
+  },
+  "config": {
+    "lambda": "index.js"
+  }
+}

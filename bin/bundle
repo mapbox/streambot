@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -eu
+
+# Executed from the service's root directory. Bundle is placed in build dir
+stackname=$1
+region=${2:-}
+
+function removemodules() {
+  for filename in node_modules/*; do
+    if [ "$filename" != "node_modules/streambot" ]; then
+      npm uninstall "$(basename "$filename")"
+    fi
+  done
+}
+
+gitsha=$(git rev-parse head)
+
+# Wrap the service's script
+if ! script=$(npm run wrap "$npm_package_config_lambda" "$stackname" "$region"); then
+  echo "$script"
+  exit 1
+fi
+mkdir -p build
+echo "$script" > "build/$gitsha.js"
+
+# Reinstall node modules for the right platform, without devDependencies
+removemodules > /dev/null
+npm install --production --target_platform=linux --target_arch=x64 > /dev/null 2>&1
+npm install --production aws-sdk
+
+# Use the gitsha to give the zipfile a name
+tmpdir=$(mktemp -d -t streambot-bundles.XXXXXX)
+zipfile="$tmpdir/$gitsha.zip"
+if [ -f "$zipfile" ]; then
+  rm "$zipfile"
+fi
+
+# Make a zip archive
+zip -r -q "$zipfile" ./* -x ./.git* -x ./build/*.zip
+
+# Reinstall your platform's dependencies so you can keep working
+removemodules > /dev/null
+npm install > /dev/null 2>&1
+
+echo "$zipfile"
