@@ -129,7 +129,7 @@ test('[deploy] setEventSource', function(assert) {
       assert.ifError(err, 'set event source');
 
       var lambda = new AWS.Lambda({ region: 'us-east-1' });
-      lambda.getEventSource({ UUID: uuid }, function(err, data) {
+      lambda.getEventSource({ UUID: uuid }, function(err) {
         assert.ifError(err, 'got event source');
 
         lambda.deleteFunction({ FunctionName: stack.stackName }, function(err) {
