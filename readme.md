@@ -66,3 +66,5 @@ It puts a wrapper around your Lambda function which sends metric data to CloudWa
 ## Gotchas
 
 - You should not use any node.js modules that include C++ addons **unless** they are pre-built with [node-pre-gyp](https://github.com/mapbox/node-pre-gyp).
+- There's a limit to the size of the zipfile that you can upload to Lambda. Using loads of C++ addon modules will very likely get you over that limit!
+- Lambda function execution time is limited to 60 seconds. Work quickly!
