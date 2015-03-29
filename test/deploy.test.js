@@ -160,8 +160,7 @@ test('[deploy] deploy', function(assert) {
 
     var streambot = fs.readFileSync('streambot.js', 'utf8');
     assert.ok(/var service = require\('index\.js'\);/.test(streambot), 'references service');
-    var re = new RegExp('MetricName: \'' + stack.stackName + '\',');
-    assert.ok(re.test(streambot), 'references metric');
+    assert.notOk(/MetricName: '\$\{metric\}'/.test(streambot), 'adjusted metric');
 
     lambda.listFunctions({}, function(err, data) {
       if (err) throw err;
