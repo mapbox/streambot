@@ -5,7 +5,7 @@
   "dependencies": {
     "aws-sdk": "^2.1.18",
     "mapnik": "^3.2.0",
-    "streambot": "../"
+    "streambot": "https://mapbox-npm.s3.amazonaws.com/package/streambot-0.0.1-43d6f0aaf624cddb9171f13680c73a2c75809efc.tgz"
   },
   "devDependencies": {
     "tape": "^3.5.0"
