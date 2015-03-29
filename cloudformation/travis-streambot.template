@@ -15,15 +15,24 @@
                   "Action": [
                     "cloudformation:DeleteStack",
                     "cloudformation:DescribeStacks",
-                    "cloudformation:CreateStack"
-                  ],
-                  "Effect": "Allow",
-                  "Resource": [
-                    "*"
-                  ]
-                },
-                {
-                  "Action": [
+                    "cloudformation:CreateStack",
+                    "kinesis:CreateStream",
+                    "kinesis:DeleteStream",
+                    "kinesis:DescribeStream",
+                    "sns:CreateTopic",
+                    "sns:DeleteTopic",
+                    "sns:Subscribe",
+                    "sns:ListTopics",
+                    "iam:CreateRole",
+                    "iam:DeleteRole",
+                    "iam:GetRole",
+                    "iam:CreatePolicy",
+                    "iam:DeletePolicy",
+                    "iam:PutRolePolicy",
+                    "iam:DeleteRolePolicy",
+                    "iam:PassRole",
+                    "cloudwatch:PutMetricAlarm",
+                    "cloudwatch:DeleteAlarms",
                     "lambda:*"
                   ],
                   "Effect": "Allow",

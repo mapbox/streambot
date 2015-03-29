@@ -46,17 +46,18 @@ test('[bundle] bundle', function(assert) {
 });
 
 test('[bundle] back to normal', function(assert) {
-  var expected = path.join(
+  var binding = path.join(
     example,
     'node_modules',
     'mapnik',
     'lib',
-    'binding',
-    'node-v11-' + process.platform + '-' + process.arch,
-    'mapnik.node'
+    'binding'
   );
 
-  assert.ok(fs.existsSync(expected), 'mapnik installed for proper platform-arch');
+  var dir = fs.readdirSync(binding)[0];
+  var re = new RegExp(process.platform + '-' + process.arch);
+  assert.ok(re.test(dir), 'folder for platform/arch');
+  assert.ok(fs.readdirSync(path.join(binding, dir)).indexOf('mapnik.node'), 'found mapnik.node');
 
   expected = path.join(
     example,
