@@ -1,0 +1,74 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "streambot travis user",
+  "Resources": {
+    "TravisUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "test",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Action": [
+                    "cloudformation:DeleteStack",
+                    "cloudformation:DescribeStacks",
+                    "cloudformation:CreateStack"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    "*"
+                  ]
+                },
+                {
+                  "Action": [
+                    "lambda:*"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    "*"
+                  ]
+                },
+                {
+                  "Resource": [
+                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*"
+                  ],
+                  "Action": [
+                    "s3:PutObject",
+                    "s3:PutObjectACL"
+                  ],
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "TravisUserAccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "TravisUser"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "AccessKeyId": {
+      "Value": {
+        "Ref": "TravisUserAccessKey"
+      }
+    },
+    "SecretAccessKey": {
+      "Value": {
+        "Fn::GetAtt": [
+          "TravisUserAccessKey",
+          "SecretAccessKey"
+        ]
+      }
+    }
+  }
+}

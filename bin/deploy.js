@@ -2,44 +2,49 @@
 
 var exec = require('child_process').exec;
 var fs = require('fs');
+var path = require('path');
 var AWS = require('aws-sdk');
+var queue = require('queue-async');
 
 module.exports.deploy = deploy;
-module.exports.bundle = bundle;
 module.exports.getStackOutputs = getStackOutputs;
-module.exports.gitsha = gitsha;
+module.exports.wrap = wrap;
+module.exports.bundle = bundle;
 module.exports.uploadFunction = uploadFunction;
 module.exports.setEventSource = setEventSource;
 
-function deploy(stackName, region, fnName, description, callback) {
-  bundle(stackName, region, function(err, zipfile) {
-    if (err) return callback(err, zipfile);
+function deploy(service, script, environment, region, description, callback) {
+  var stackName = [service, environment].join('-');
+  var outputs;
+  var functionArn;
+  var zipfile;
 
-    getStackOutputs(stackName, region, function(err, outputs) {
-      if (err) return callback(err);
-
-      gitsha(function(err, sha) {
-        if (err) return callback(err);
-
-        uploadFunction(region, fnName, zipfile, sha, outputs.LambdaExecutionRole, description, function(err, arn) {
-          if (err) return callback(err);
-
-          setEventSource(function(err) {
-            if (err) return callback(err);
-
-            callback(null, arn);
-          });
-        });
+  queue(1)
+    .defer(function(next) {
+      getStackOutputs(stackName, region, function(err, out) {
+        outputs = out;
+        next(err);
       });
-    });
-  });
-}
-
-function bundle(stackName, region, callback) {
-  exec(['npm run bundle', stackName, region].join(' '), function(err, stdout, stderr) {
-    if (err) return callback(err, stderr);
-    callback(null, stdout);
-  });
+    })
+    .defer(function(next) {
+      wrap(script, outputs.MetricName, next);
+    })
+    .defer(function(next) {
+      bundle(function(err, zip) {
+        zipfile = zip;
+        next(err);
+      });
+    })
+    .defer(function(next) {
+      uploadFunction(region, stackName, zipfile, outputs.LambdaExecutionRole, description, function(err, arn) {
+        functionArn = arn;
+        next(err);
+      });
+    })
+    .defer(function(next) {
+      setEventSource(region, outputs.KinesisStream, stackName, outputs.LambdaInvocationRole, next);
+    })
+    .await(callback);
 }
 
 function getStackOutputs(stackName, region, callback) {
@@ -55,7 +60,7 @@ function getStackOutputs(stackName, region, callback) {
 
     if (!streambotStack) return callback(new Error('Stack missing StreambotStack output'));
 
-    cfn.describeStacks({ StackName: streambotStack }, function(err, data) {
+    cfn.describeStacks({ StackName: streambotStack.OutputValue }, function(err, data) {
       if (err) return callback(err);
       if (!data.Stacks.length) return callback(new Error('Could not find stack ' + stackName));
 
@@ -69,27 +74,41 @@ function getStackOutputs(stackName, region, callback) {
   });
 }
 
-function gitsha(callback) {
-    exec('git rev-parse HEAD', function (err, gitsha) {
-        if (err) return callback(err);
-        callback(null, gitsha.trim());
-    });
+function wrap(service, metricName, callback) {
+  fs.readFile(path.resolve(__dirname, '..', 'index.js'), 'utf8', function(err, streambot) {
+    if (err) return callback(err);
+
+    streambot = streambot
+      .replace('${service}', service)
+      .replace('${metric}', metricName);
+
+    fs.writeFile(path.resolve('streambot.js'), streambot, callback);
+  });
 }
 
-function uploadFunction(region, fnName, zipfile, gitsha, executionRole, description, callback) {
+function bundle(callback) {
+  exec(['$(npm bin)/streambot-bundle', process.cwd()].join(' '), function(err, stdout, stderr) {
+    if (err) return callback(err, stderr);
+    callback(null, stdout.trim());
+  });
+}
+
+function uploadFunction(region, fnName, zipfile, executionRole, description, callback) {
   var lambda = new AWS.Lambda({ region: region });
 
-  lambda.uploadFunction({
+  var params = {
     FunctionName: fnName,
-    FunctionZip: fs.createReadStream(zipfile),
-    Handler: 'build/' + gitsha + '.streambot',
+    FunctionZip: fs.readFileSync(zipfile),
+    Handler: 'streambot.streambot',
     Mode: 'event',
     Role: executionRole,
     Runtime: 'nodejs',
     Description: description,
     MemorySize: 128,
     Timeout: 60
-  }, function(err, data) {
+  };
+
+  lambda.uploadFunction(params, function(err, data) {
     if (err) return callback(err);
     callback(null, data.FunctionARN);
   });
@@ -105,7 +124,7 @@ function setEventSource(region, streamArn, fnName, invocationRole, callback) {
     if (err) return callback(err);
     if (data.EventSources.length) return callback(null, data.EventSources[0].UUID);
 
-    lambda.setEventSource({
+    lambda.addEventSource({
       EventSource: streamArn,
       FunctionName: fnName,
       Role: invocationRole,
@@ -121,13 +140,14 @@ function setEventSource(region, streamArn, fnName, invocationRole, callback) {
 }
 
 if (require.main === module) {
-  var fnName = process.env.npm_package_name + '-' + process.argv[2];
-  var stackName = process.argv[3];
-  var region = process.argv[4] || 'us-east-1';
+  var args = require('minimist')(process.argv.slice(2));
+  var service = process.env.npm_package_name;
+  var script = process.env.npm_package_config_lambda;
+  var environment = args._[0];
+  var region = args.region || 'us-east-1';
   var description = process.env.npm_package_description;
 
-  deploy(stackName, region, fnName, description, function(err, log) {
-    if (err && log) console.error(log);
+  deploy(service, script, environment, region, description, function(err) {
     if (err) throw err;
   });
 }

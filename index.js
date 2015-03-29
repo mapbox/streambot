@@ -1,18 +1,9 @@
-var crypto = require('crypto');
 var AWS = require('aws-sdk');
 var service = require('${service}');
 
 module.exports.streambot = function(event, context) {
-  var jobid = crypto.randomBytes(8).toString('hex');
-  var log = {
-    error: function(msg) { console.error('[%s] %s', jobid, msg); },
-    warn: function(msg) { console.error('[%s] %s', jobid, msg); },
-    info: function(msg) { console.log('[%s] %s', jobid, msg); },
-    debug: function(msg) { console.log('[%s] %s', jobid, msg); }
-  };
-
   function callback(err) {
-    if (err) log.error(err);
+    if (err) console.log(err);
 
     var cloudwatch = new AWS.CloudWatch();
     var params = {
@@ -28,12 +19,26 @@ module.exports.streambot = function(event, context) {
 
     params.MetricData[0].Dimensions[0].Value = err ? 'Error' : 'Success';
 
-    cloudwatch.putMetricData(params, function(error, data) {
-      if (error) log.error(error);
-      else if (!err) log.info('putMetricData ' + JSON.stringify(params));
-      context.done();
+    var eventIds = event.Records.map(function(record) {
+      return record.eventID;
+    });
+
+    cloudwatch.putMetricData(params, function(error) {
+      if (error) console.log(error);
+      else console.log('putMetricData ' + JSON.stringify(params));
+      context.done(err, 'Processed events: ' + eventIds.join(' '));
     });
   }
 
-  service(event, callback);
+  console.log(JSON.stringify(event));
+
+  var records = event.Records
+    .filter(function(record) {
+      return record.eventName === 'aws:kinesis:record';
+    }).map(function(record) {
+      record.kinesis.data = new Buffer(record.kinesis.data, 'base64').toString();
+      return record.kinesis;
+    });
+
+  service(records, callback);
 };

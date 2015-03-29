@@ -8,13 +8,15 @@ module.exports = function(records, callback) {
 
   function uploadRecord(record) {
     s3.putObject({
-      Bucket: 'my-bucket',
-      Key: 'example-records/' + record.id,
-      Body: new Buffer(JSON.stringify(record))
+      Bucket: 'mapbox',
+      Key: 'example-records/' + record.sequenceNumber,
+      Body: record.data
     }, function(err) {
       if (err) return callback(err);
+
       var record = records.shift();
       if (record) uploadRecord(record);
+      else callback();
     });
   }
 };

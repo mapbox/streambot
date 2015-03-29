@@ -1,10 +1,17 @@
 {
-  "name": "streambot-example",
+  "name": "test-streambot",
   "version": "0.0.1",
   "description": "example of using streambot",
   "dependencies": {
     "aws-sdk": "^2.1.18",
+    "mapnik": "^3.2.0",
     "streambot": "../"
+  },
+  "devDependencies": {
+    "tape": "^3.5.0"
+  },
+  "scripts": {
+    "deploy": "streambot-deploy"
   },
   "config": {
     "lambda": "index.js"

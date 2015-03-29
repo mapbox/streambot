@@ -1,20 +1,22 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "A simple robotropism example",
+  "Description": "A simple streambot example",
   "Resources": {
-    "RobotropismStack": {
+    "StreambotStack": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "TemplateUrl": "",
+        "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/6dcabfef8fd085f00971bed202e9598e1e01dbf7.template",
         "Parameters": {
-          "AlarmEmail": "my-email@domain.com"
-        },
-        "MetricName": "example"
+          "AlarmEmail": "my-email@domain.com",
+          "MetricName": {
+            "Ref": "AWS::StackName"
+          }
+        }
       }
     },
     "LambdaPolicy": {
       "Type": "AWS::IAM::Policy",
-      "DependsOn": "RobotropismStack",
+      "DependsOn": "StreambotStack",
       "Properties": {
         "PolicyName": "uploadrecords",
         "PolicyDocument": {
@@ -25,16 +27,16 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::my-bucket/example-records/*"
+                "arn:aws:s3:::mapbox/example-records/*"
               ]
             }
           ]
         },
         "Roles": [
           {
-            "Fn::GetAtt" : [
-              "RobotropismStack" ,
-              "Outputs.LambdaExecutionRole"
+            "Fn::GetAtt": [
+              "StreambotStack",
+              "Outputs.LambdaExecutionRoleName"
             ]
           }
         ]
@@ -42,9 +44,9 @@
     }
   },
   "Outputs": {
-    "RobotropismStack": {
+    "StreambotStack": {
       "Value": {
-        "Ref": "RobotropismStack"
+        "Ref": "StreambotStack"
       }
     }
   }

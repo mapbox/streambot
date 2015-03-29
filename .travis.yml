@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+- 0.10
+- 0.12
+sudo: false
+before_install:
+- pip install --user awscli && export PATH=$PATH:~/.local/bin/
+- if [[ $(uname -s) == 'Linux' ]]; then wget https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+files/libstdc%2B%2B6_4.8.1-2ubuntu1~12.04_amd64.deb && dpkg -x libstdc++6_4.8.1-2ubuntu1~12.04_amd64.deb ./ && export LD_PRELOAD=$(pwd)/usr/lib/x86_64-linux-gnu/libstdc++.so.6; fi
+- aws s3 cp --acl=public-read cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/${TRAVIS_COMMIT}.template
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/$(git describe --tags --exact-match).template; fi

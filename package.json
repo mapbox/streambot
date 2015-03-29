@@ -1,30 +1,40 @@
 {
   "name": "streambot",
   "version": "0.0.1",
-  "description": "",
+  "description": "Assisted deploys to Lambda",
   "main": "index.js",
   "scripts": {
+    "pretest": "jshint index.js bin test && jscs index.js bin test",
     "test": "tape test/*.test.js"
   },
   "bin": {
-    "wrap": "bin/wrap.js",
-    "bundle": "bin/bundle",
-    "deploy": "bin/deploy.js",
-    "template-url": "bin/template-url.js"
+    "streambot-bundle": "bin/bundle",
+    "streambot-deploy": "bin/deploy.js",
+    "streambot-template-url": "bin/template-url.js"
   },
   "author": "Mapbox",
   "license": "ISC",
   "devDependencies": {
+    "cfn-test": "0.0.2",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
-    "tape": "^3.5.0"
+    "tape": "^3.5.0",
+    "zipfile": "^0.5.7"
   },
   "jscsConfig": {
     "preset": "airbnb",
-    "requireCamelCaseOrUpperCaseIdentifiers": false
+    "requireCamelCaseOrUpperCaseIdentifiers": null
+  },
+  "jshintConfig": {
+    "node": true,
+    "globalstrict": false,
+    "undef": true,
+    "unused": true,
+    "noarg": true
   },
   "dependencies": {
     "aws-sdk": "^2.1.18",
+    "minimist": "^1.1.1",
     "queue-async": "^1.0.7"
   }
 }
