@@ -59,7 +59,7 @@ test('[bundle] back to normal', function(assert) {
   assert.ok(re.test(dir), 'folder for platform/arch');
   assert.ok(fs.readdirSync(path.join(binding, dir)).indexOf('mapnik.node'), 'found mapnik.node');
 
-  expected = path.join(
+  var expected = path.join(
     example,
     'node_modules',
     'tape',
