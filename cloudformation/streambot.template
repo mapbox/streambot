@@ -250,6 +250,11 @@
         ]
       }
     },
+    "LambdaExecutionRoleName": {
+      "Value": {
+        "Ref": "ExecutionRole"
+      }
+    },
     "KinesisAdminRole": {
       "Value": {
         "Fn::GetAtt": [
