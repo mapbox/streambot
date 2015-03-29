@@ -20,11 +20,11 @@ test('[deploy] getStackOutputs', function(assert) {
     assert.ifError(err, 'got stack outputs');
 
     var keys = Object.keys(outputs);
-    assert.ok(keys.indexOf('KinesisStream'), 'found KinesisStream output');
-    assert.ok(keys.indexOf('LambdaInvocationRole'), 'found LambdaInvocationRole output');
-    assert.ok(keys.indexOf('LambdaExecutionRole'), 'found LambdaExecutionRole output');
-    assert.ok(keys.indexOf('LambdaExecutionRoleName'), 'found LambdaExecutionRoleName output');
-    assert.ok(keys.indexOf('KinesisAdminRole'), 'found KinesisAdminRole output');
+    assert.ok(keys.indexOf('KinesisStream') > -1, 'found KinesisStream output');
+    assert.ok(keys.indexOf('LambdaInvocationRole') > -1, 'found LambdaInvocationRole output');
+    assert.ok(keys.indexOf('LambdaExecutionRole') > -1, 'found LambdaExecutionRole output');
+    assert.ok(keys.indexOf('LambdaExecutionRoleName') > -1, 'found LambdaExecutionRoleName output');
+    assert.ok(keys.indexOf('KinesisAdminRole') > -1, 'found KinesisAdminRole output');
 
     assert.end();
   });
@@ -113,7 +113,7 @@ test('[deploy] setEventSource', function(assert) {
       uploaded
     );
 
-    function uploaded(err, arn) {
+    function uploaded(err) {
       if (err) throw err;
 
       deploy.setEventSource(
@@ -131,9 +131,8 @@ test('[deploy] setEventSource', function(assert) {
       var lambda = new AWS.Lambda({ region: 'us-east-1' });
       lambda.getEventSource({ UUID: uuid }, function(err, data) {
         assert.ifError(err, 'got event source');
-        console.log(data);
 
-        lambda.deleteFunction({ FunctionName: fn.FunctionName }, function(err) {
+        lambda.deleteFunction({ FunctionName: stack.stackName }, function(err) {
           if (err) throw err;
           assert.end();
         });
