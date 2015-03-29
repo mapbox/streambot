@@ -7,10 +7,7 @@
       "Properties": {
         "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/6dcabfef8fd085f00971bed202e9598e1e01dbf7.template",
         "Parameters": {
-          "AlarmEmail": "my-email@domain.com",
-          "MetricName": {
-            "Ref": "AWS::StackName"
-          }
+          "AlarmEmail": "my-email@domain.com"
         }
       }
     },

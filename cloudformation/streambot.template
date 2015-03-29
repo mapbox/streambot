@@ -11,10 +11,6 @@
       "Type": "String",
       "Description": "Email address to receive notifications of errored runs",
       "Default": "devnull@mapbox.com"
-    },
-    "MetricName": {
-      "Type": "String",
-      "Description": "The name of a CloudWatch metric that will receive data counting successful and erroneous completion of lambda functions"
     }
   },
   "Resources": {
@@ -52,7 +48,7 @@
         ],
         "EvaluationPeriods": 1,
         "MetricName": {
-          "Ref": "MetricName"
+          "Ref": "AWS::StackName"
         },
         "Namespace": "streambot",
         "Period": "60",
@@ -264,7 +260,7 @@
     },
     "MetricName": {
       "Value": {
-        "Ref": "MetricName"
+        "Ref": "AWS::StackName"
       }
     }
   }
