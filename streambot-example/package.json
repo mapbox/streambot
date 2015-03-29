@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "example of using streambot",
   "dependencies": {
-    "aws-sdk": "https://github.com/mapbox/aws-sdk-js/tarball/stream-highwater",
+    "aws-sdk": "^2.1.20",
     "mapnik": "^3.2.0",
     "streambot": "https://mapbox-npm.s3.amazonaws.com/package/streambot-0.0.1-43d6f0aaf624cddb9171f13680c73a2c75809efc.tgz"
   },
