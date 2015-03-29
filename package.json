@@ -33,7 +33,7 @@
     "noarg": true
   },
   "dependencies": {
-    "aws-sdk": "^2.1.18",
+    "aws-sdk": "https://github.com/mapbox/aws-sdk-js/tarball/stream-highwater",
     "minimist": "^1.1.1",
     "queue-async": "^1.0.7"
   }
