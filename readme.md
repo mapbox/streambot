@@ -1,6 +1,6 @@
 # streambot
 
-The brother of Watchbot, focused on using Lambda to consume records from Kinesis.
+The sibling of Watchbot, focused on using Lambda to consume records from Kinesis.
 
 ## When to use it
 
@@ -12,7 +12,7 @@ Your service is a node.js module. This module includes:
 
 - a module which exports a function that Lambda will execute
 - a package.json file that defines streambot as a dependency
-- the package.json file should point to your Lambda module via a config parameter named `lambda`
+- the package.json file should point to your Lambda module via a `config` parameter named `lambda`
 - the package.json defines a `script` that references streambot's deploy script
 - an AWS CloudFormation template that, at a minimum:
   - defines an `AWS::CloudFormation::Stack` resource which points to streambot's `TemplateURL`
@@ -34,7 +34,7 @@ npm run deploy <environment> [--region <region>]
 Where `deploy` is the name of the script in your service's package.json that references `streambot-deploy`. This will:
 
 - sit a `streambot.js` file in your repository containing the code that Lambda will run
-- remove your existing `node_modules` directory, then reinstall with `--production --target_platform=linux --target_arch=x64`
+- remove your existing `node_modules` directory, then reinstall for the appropriate platform/arch to run on Lambda
 - zip your service into a file and put it at `build/bundle.zip`
 - remove the `node_modules` directory again, before reinstalling without flags
 - refer to your CloudFormation stack to get appropriate resource ARNs before deploying your bundle to Lambda
@@ -57,6 +57,7 @@ It creates a number of AWS resources, which can be accessed as CloudFormation st
 - `LambdaInvocationRole`: an IAM role that allows Lambda to read from the kinesis stream
 - `LambdaExecutionRole`: an IAM role that you can extend to provide permissions that your Lambda function requires to execute
 - `KinesisAdminRole`: an IAM role that an EC2 can assume which provides full privileges to manipulate the kinesis stream
+- `MetricName`: the name of the CloudWatch metric that tracks Lambda's success/failure
 
 #### Metrics and alarms
 
