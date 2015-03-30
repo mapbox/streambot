@@ -1,7 +1,12 @@
 var AWS = require('aws-sdk');
+var streambot = require('streambot');
 
-module.exports = function(records, callback) {
+module.exports.streambot = streambot(exampleService);
+
+function exampleService(records, callback) {
   var s3 = new AWS.S3();
+
+  console.log(process.env);
 
   var record = records.shift();
   if (record) uploadRecord(record);
@@ -19,4 +24,4 @@ module.exports = function(records, callback) {
       else callback();
     });
   }
-};
+}

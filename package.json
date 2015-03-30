@@ -37,7 +37,9 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1.20",
+    "dotenv": "^1.0.0",
     "minimist": "^1.1.1",
-    "queue-async": "^1.0.7"
+    "queue-async": "^1.0.7",
+    "underscore": "^1.8.2"
   }
 }
