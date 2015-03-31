@@ -1,6 +1,6 @@
 {
   "name": "streambot",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Assisted deploys to Lambda",
   "main": "index.js",
   "engines": {
