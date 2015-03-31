@@ -14,6 +14,7 @@ Your service is a node.js module. Follow these steps:
 
 1. create your module's `package.json` with `streambot` as a dependency
 2. add a pacakge.json `script` that references streambot's deploy script
+
   ```json
   {
     "scripts": {
@@ -21,7 +22,9 @@ Your service is a node.js module. Follow these steps:
     }
   }
   ```
+
 3. define `main` in package.json. This module should export your service function wrapped by streambot. For example:
+
   ```js
   var streambot = require('streambot');
   module.exports.streambot = streambot(function(records, callback) {
@@ -29,6 +32,7 @@ Your service is a node.js module. Follow these steps:
     callback();
   });
   ```
+
 4. create an AWS CloudFormation template that, at a minimum:
   - defines an `AWS::CloudFormation::Stack` resource which points to streambot's `TemplateURL`
   - provides the name of the streambot child-stack as an output called `StreambotStack`
@@ -57,6 +61,7 @@ This runs streambot's deploy scripts, which will:
 #### Runtime environment
 
 Streambot provides a wrapper for your Lambda function
+- base64 decodes the `data` associated with each kinesis record 
 - provides information to your function about your CloudFormation stack's parameters, resources, and outputs via `process.env`
 - provides `streambot.log`, a [fastlog](https://github.com/willwhite/fastlog) object that is capable of uploading your logs to an S# bucket/prefix of your choosing
 - sends metrics to CloudWatch indicating success or failure from your function, as well as an alarm that will trigger when errors occur
