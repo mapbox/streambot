@@ -19,7 +19,9 @@ npm install --production \
   --target=0.10.38 \
   --target_platform=linux \
   --target_arch=x64 > /dev/null 2>&1
-npm install --production aws-sdk dotenv > /dev/null 2>&1
+
+# Install streambot runtime dependencies
+npm install --production aws-sdk dotenv fastlog > /dev/null 2>&1
 
 mkdir -p "$1/build"
 zipfile="$1/build/bundle.zip"

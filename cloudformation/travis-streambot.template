@@ -34,6 +34,7 @@
                     "iam:PassRole",
                     "cloudwatch:PutMetricAlarm",
                     "cloudwatch:DeleteAlarms",
+                    "cloudwatch:PutMetricData",
                     "lambda:*"
                   ],
                   "Effect": "Allow",
@@ -43,11 +44,14 @@
                 },
                 {
                   "Resource": [
-                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*"
+                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*",
+                    "arn:aws:s3:::mapbox/streambot-test/*"
                   ],
                   "Action": [
+                    "s3:GetObject",
                     "s3:PutObject",
-                    "s3:PutObjectACL"
+                    "s3:PutObjectACL",
+                    "s3:DeleteObject"
                   ],
                   "Effect": "Allow"
                 }

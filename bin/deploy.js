@@ -43,7 +43,7 @@ function deploy(service, script, environment, region, description, callback) {
       });
     })
     .defer(function(next) {
-      wrap(_.extend({}, parameters, resources, outputs), next);
+      wrap(_.extend({ StackName: stackName }, parameters, resources, outputs), next);
     })
     .defer(function(next) {
       bundle(function(err, zip) {
