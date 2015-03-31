@@ -15,8 +15,11 @@ function removemodules() {
 
 # Reinstall node modules for linux, without devDependencies
 removemodules > /dev/null
-npm install --production --target_platform=linux --target_arch=x64 > /dev/null 2>&1
-npm install --production aws-sdk > /dev/null 2>&1
+npm install --production \
+  --target=0.10.38 \
+  --target_platform=linux \
+  --target_arch=x64 > /dev/null 2>&1
+npm install --production aws-sdk dotenv > /dev/null 2>&1
 
 mkdir -p "$1/build"
 zipfile="$1/build/bundle.zip"
@@ -25,7 +28,7 @@ if [ -f "$zipfile" ]; then
 fi
 
 # Make a zip archive
-zip -r -q "$zipfile" ./* -x ./.git* -x ./build* > /dev/null
+zip -r -q "$zipfile" . -x ./.git* -x ./build* > /dev/null
 
 # Reinstall your platform's dependencies so you can keep working
 removemodules > /dev/null 2>&1

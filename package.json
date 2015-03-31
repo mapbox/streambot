@@ -12,8 +12,7 @@
   },
   "bin": {
     "streambot-bundle": "bin/bundle",
-    "streambot-deploy": "bin/deploy.js",
-    "streambot-template-url": "bin/template-url.js"
+    "streambot-deploy": "bin/deploy.js"
   },
   "author": "Mapbox",
   "license": "ISC",
@@ -37,7 +36,9 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1.20",
+    "dotenv": "^1.0.0",
     "minimist": "^1.1.1",
-    "queue-async": "^1.0.7"
+    "queue-async": "^1.0.7",
+    "underscore": "^1.8.2"
   }
 }

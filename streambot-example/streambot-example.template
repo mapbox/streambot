@@ -5,7 +5,7 @@
     "StreambotStack": {
       "Type": "AWS::CloudFormation::Stack",
       "Properties": {
-        "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/6dcabfef8fd085f00971bed202e9598e1e01dbf7.template",
+        "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/850b359fbc4fb732ed8fe5feea8bea844bf02e65.template",
         "Parameters": {
           "AlarmEmail": "my-email@domain.com"
         }

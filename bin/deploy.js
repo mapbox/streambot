@@ -5,9 +5,12 @@ var fs = require('fs');
 var path = require('path');
 var AWS = require('aws-sdk');
 var queue = require('queue-async');
+var _ = require('underscore');
 
 module.exports.deploy = deploy;
 module.exports.getStackOutputs = getStackOutputs;
+module.exports.getStackParameters = getStackParameters;
+module.exports.getStackResources = getStackResources;
 module.exports.wrap = wrap;
 module.exports.bundle = bundle;
 module.exports.uploadFunction = uploadFunction;
@@ -16,7 +19,8 @@ module.exports.setEventSource = setEventSource;
 function deploy(service, script, environment, region, description, callback) {
   var stackName = [service, environment].join('-');
   var outputs;
-  var functionArn;
+  var parameters;
+  var resources;
   var zipfile;
 
   queue(1)
@@ -27,7 +31,19 @@ function deploy(service, script, environment, region, description, callback) {
       });
     })
     .defer(function(next) {
-      wrap(script, outputs.MetricName, next);
+      getStackParameters(stackName, region, function(err, params) {
+        parameters = params;
+        next(err);
+      });
+    })
+    .defer(function(next) {
+      getStackResources(stackName, region, function(err, res) {
+        resources = res;
+        next(err);
+      });
+    })
+    .defer(function(next) {
+      wrap(_.extend({}, parameters, resources, outputs), next);
     })
     .defer(function(next) {
       bundle(function(err, zip) {
@@ -36,10 +52,7 @@ function deploy(service, script, environment, region, description, callback) {
       });
     })
     .defer(function(next) {
-      uploadFunction(region, stackName, zipfile, outputs.LambdaExecutionRole, description, function(err, arn) {
-        functionArn = arn;
-        next(err);
-      });
+      uploadFunction(region, stackName, zipfile, script, outputs.LambdaExecutionRole, description, next);
     })
     .defer(function(next) {
       setEventSource(region, outputs.KinesisStream, stackName, outputs.LambdaInvocationRole, next);
@@ -74,16 +87,44 @@ function getStackOutputs(stackName, region, callback) {
   });
 }
 
-function wrap(service, metricName, callback) {
-  fs.readFile(path.resolve(__dirname, '..', 'index.js'), 'utf8', function(err, streambot) {
+function getStackParameters(stackName, region, callback) {
+  var cfn = new AWS.CloudFormation({ region: region });
+
+  cfn.describeStacks({ StackName: stackName }, function(err, data) {
+    if (err) return callback(err);
+    if (!data.Stacks.length) return callback(new Error('Could not find stack ' + stackName));
+
+    var parameters = data.Stacks[0].Parameters.reduce(function(parameters, param) {
+      parameters[param.ParameterKey] = param.ParameterValue;
+      return parameters;
+    }, {});
+
+    callback(null, parameters);
+  });
+}
+
+function getStackResources(stackName, region, callback) {
+  var cfn = new AWS.CloudFormation({ region: region });
+
+  cfn.describeStackResources({ StackName: stackName }, function(err, data) {
     if (err) return callback(err);
 
-    streambot = streambot
-      .replace('${service}', service)
-      .replace('${metric}', metricName);
+    var resources = data.StackResources.reduce(function(resources, resource) {
+      resources[resource.LogicalResourceId] = resource.PhysicalResourceId;
+      return resources;
+    }, {});
 
-    fs.writeFile(path.resolve('streambot.js'), streambot, callback);
+    callback(null, resources);
   });
+}
+
+function wrap(env, callback) {
+  var dotenv = _(env).reduce(function(dotenv, val, key) {
+    dotenv += [key, val].join('=') + '\n';
+    return dotenv;
+  }, '');
+
+  fs.writeFile(path.resolve('.env'), dotenv, callback);
 }
 
 function bundle(callback) {
@@ -93,13 +134,16 @@ function bundle(callback) {
   });
 }
 
-function uploadFunction(region, fnName, zipfile, executionRole, description, callback) {
+function uploadFunction(region, fnName, zipfile, script, executionRole, description, callback) {
   var lambda = new AWS.Lambda({ region: region });
+
+  var handler = path.dirname(script) === '.' ? '' : path.dirname(script) + '/';
+  handler += path.basename(script, path.extname(script)) + '.streambot';
 
   var params = {
     FunctionName: fnName,
     FunctionZip: fs.readFileSync(zipfile),
-    Handler: 'streambot.streambot',
+    Handler: handler,
     Mode: 'event',
     Role: executionRole,
     Runtime: 'nodejs',
@@ -142,7 +186,7 @@ function setEventSource(region, streamArn, fnName, invocationRole, callback) {
 if (require.main === module) {
   var args = require('minimist')(process.argv.slice(2));
   var service = process.env.npm_package_name;
-  var script = process.env.npm_package_config_lambda;
+  var script = process.env.npm_package_main;
   var environment = args._[0];
   var region = args.region || 'us-east-1';
   var description = process.env.npm_package_description;

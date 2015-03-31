@@ -15,6 +15,7 @@
                   "Action": [
                     "cloudformation:DeleteStack",
                     "cloudformation:DescribeStacks",
+                    "cloudformation:DescribeStackResources",
                     "cloudformation:CreateStack",
                     "kinesis:CreateStream",
                     "kinesis:DeleteStream",
