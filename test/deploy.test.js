@@ -10,12 +10,11 @@ var example = path.resolve(__dirname, '..', 'streambot-example');
 var template = path.join(example, 'streambot-example.template');
 template = JSON.parse(fs.readFileSync(template, 'utf8'));
 
-// Deploy script is executed from the service's root dir
-process.chdir(example);
-
 stack.start(template);
 
 test('[deploy] getStackOutputs', function(assert) {
+  process.chdir(example);
+
   deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     assert.ifError(err, 'got stack outputs');
 
@@ -26,12 +25,17 @@ test('[deploy] getStackOutputs', function(assert) {
     assert.ok(keys.indexOf('LambdaExecutionRoleName') > -1, 'found LambdaExecutionRoleName output');
     assert.ok(keys.indexOf('KinesisAdminRole') > -1, 'found KinesisAdminRole output');
     assert.ok(keys.indexOf('MetricName') > -1, 'found MetricName output');
+    assert.ok(keys.indexOf('StackRegion') > -1, 'found StackRegion output');
+    assert.ok(keys.indexOf('LogBucket') > -1, 'found LogBucket output');
+    assert.ok(keys.indexOf('LogPrefix') > -1, 'found LogPrefix output');
 
     assert.end();
   });
 });
 
 test('[deploy] getStackParameters', function(assert) {
+  process.chdir(example);
+
   deploy.getStackParameters(stack.stackName, 'us-east-1', function(err, params) {
     assert.ifError(err, 'got stack parameters');
     assert.deepEqual(params, {});
@@ -40,6 +44,8 @@ test('[deploy] getStackParameters', function(assert) {
 });
 
 test('[deploy] getStackResources', function(assert) {
+  process.chdir(example);
+
   deploy.getStackResources(stack.stackName, 'us-east-1', function(err, resources) {
     assert.ifError(err, 'got stack resources');
 
@@ -51,6 +57,8 @@ test('[deploy] getStackResources', function(assert) {
 });
 
 test('[deploy] wrap', function(assert) {
+  process.chdir(example);
+
   var env = {
     SomeVariable: 'some value',
     Another: 'variable'
@@ -71,6 +79,8 @@ test('[deploy] wrap', function(assert) {
 });
 
 test('[deploy] npm install', function(assert) {
+  process.chdir(example);
+
   exec('npm install', { cwd: example }, function(err, stdout, stderr) {
     if (err) {
       console.log(stdout);
@@ -83,6 +93,8 @@ test('[deploy] npm install', function(assert) {
 });
 
 test('[deploy] bundle', function(assert) {
+  process.chdir(example);
+
   var zip = path.join('build', 'bundle.zip');
   if (fs.existsSync(zip)) fs.unlinkSync(zip);
   deploy.bundle(function(err) {
@@ -93,6 +105,8 @@ test('[deploy] bundle', function(assert) {
 });
 
 test('[deploy] uploadFunction', function(assert) {
+  process.chdir(example);
+
   deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
@@ -129,6 +143,8 @@ test('[deploy] uploadFunction', function(assert) {
 });
 
 test('[deploy] setEventSource', function(assert) {
+  process.chdir(example);
+
   deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
@@ -171,6 +187,8 @@ test('[deploy] setEventSource', function(assert) {
 });
 
 test('[deploy] deploy', function(assert) {
+  process.chdir(example);
+
   var lambda = new AWS.Lambda({ region: 'us-east-1' });
   var fnName = stack.stackName;
   var environment = stack.stackName.split('-').pop();
@@ -226,6 +244,8 @@ test('[deploy] deploy', function(assert) {
 });
 
 test('[deploy] via npm run', function(assert) {
+  process.chdir(example);
+
   var lambda = new AWS.Lambda({ region: 'us-east-1' });
   var environment = stack.stackName.split('-').pop();
 

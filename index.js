@@ -1,11 +1,21 @@
 var AWS = require('aws-sdk');
+var fastlog = require('fastlog');
+var dotenv = require('dotenv');
 
 module.exports = function(service) {
+  dotenv.load();
+
+  var log = module.exports.log = new Logger(fastlog(process.env.StackName, 'debug'));
+
   return function streambot(event, context) {
     function callback(err) {
-      if (err) console.log(err);
+      if (err) log.error(err);
 
-      var cloudwatch = new AWS.CloudWatch();
+      var cloudwatch = new AWS.CloudWatch({
+        region: process.env.StackRegion
+      });
+      var s3 = new AWS.S3();
+
       var params = {
         Namespace: 'streambot',
         MetricData: [
@@ -23,14 +33,34 @@ module.exports = function(service) {
         return record.eventID;
       });
 
-      cloudwatch.putMetricData(params, function(error) {
-        if (error) console.log(error);
-        else console.log('putMetricData ' + JSON.stringify(params));
+      function finished() {
         context.done(err, 'Processed events: ' + eventIds.join(' '));
+      }
+
+      cloudwatch.putMetricData(params, function(error) {
+        if (error) log.error(error);
+        else log.info('putMetricData ' + JSON.stringify(params));
+
+        var bucket = process.env.LogBucket;
+        var prefix = process.env.LogPrefix;
+
+        if (bucket) {
+          var filename = [process.env.StackName, eventIds.join('-')].join('-');
+          if (prefix) filename = [prefix, filename].join('/');
+          return s3.putObject({
+            Bucket: bucket,
+            Key: filename,
+            Body: new Buffer(log.logs())
+          }, function() {
+            finished();
+          });
+        }
+
+        finished();
       });
     }
 
-    console.log(JSON.stringify(event));
+    log.info(JSON.stringify(event));
 
     var records = event.Records
       .filter(function(record) {
@@ -40,8 +70,39 @@ module.exports = function(service) {
         return record.kinesis;
       });
 
-    require('dotenv').load();
-
     service(records, callback);
   };
 };
+
+function Logger(fastlog) {
+  var logs = [];
+
+  var logger = {
+    debug: function() {
+      logs.push(fastlog.debug.apply(logger, arguments));
+    },
+
+    info: function() {
+      logs.push(fastlog.info.apply(logger, arguments));
+    },
+
+    warn: function() {
+      logs.push(fastlog.warn.apply(logger, arguments));
+    },
+
+    error: function() {
+      logs.push(fastlog.error.apply(logger, arguments));
+    },
+
+    fatal: function() {
+      logs.push(fastlog.fatal.apply(logger, arguments));
+    },
+
+    logs: function() {
+      return logs.join('\n');
+    }
+
+  };
+
+  return logger;
+}

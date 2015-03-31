@@ -6,7 +6,7 @@ module.exports.streambot = streambot(exampleService);
 function exampleService(records, callback) {
   var s3 = new AWS.S3();
 
-  console.log(process.env);
+  streambot.log.info(process.env);
 
   var record = records.shift();
   if (record) uploadRecord(record);

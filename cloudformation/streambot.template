@@ -2,15 +2,20 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Read and respond to a Kinesis stream using Lambda",
   "Parameters": {
-    "GitSha": {
-      "Type": "String",
-      "Description": "GitSha of streambot to deploy",
-      "Default": ""
-    },
     "AlarmEmail": {
       "Type": "String",
       "Description": "Email address to receive notifications of errored runs",
       "Default": "devnull@mapbox.com"
+    },
+    "LogBucket": {
+      "Type": "String",
+      "Description": "Optional S3 bucket to send logs to",
+      "Default": ""
+    },
+    "LogPrefix": {
+      "Type": "String",
+      "Description": "Optional S3 prefix to send logs to",
+      "Default": ""
     }
   },
   "Resources": {
@@ -266,6 +271,21 @@
     "MetricName": {
       "Value": {
         "Ref": "AWS::StackName"
+      }
+    },
+    "LogBucket": {
+      "Value": {
+        "Ref": "LogBucket"
+      }
+    },
+    "LogPrefix": {
+      "Value": {
+        "Ref": "LogPrefix"
+      }
+    },
+    "StackRegion": {
+      "Value": {
+        "Ref": "AWS::Region"
       }
     }
   }
