@@ -36,7 +36,7 @@ test('[bundle] bundle', function(assert) {
 
     assert.ok(filenames.indexOf('index.js') > -1, 'contains index.js');
     assert.ok(filenames.indexOf('package.json') > -1, 'contains package.json');
-    assert.ok(filenames.indexOf('streambot-example.template.json') > -1, 'contains streambot-example.template');
+    assert.ok(filenames.indexOf('streambot-example.template') > -1, 'contains streambot-example.template');
     assert.ok(filenames.indexOf('node_modules/streambot/index.js') > -1, 'contains node_modules/streambot/index.js');
     assert.ok(filenames.indexOf('node_modules/mapnik/lib/binding/node-v11-linux-x64/mapnik.node') > -1, 'contains node_modules/mapnik/lib/binding/node-v11-linux-x64/mapnik.node');
     assert.ok(filenames.indexOf('node_modules/tape/index.js') < 0, 'does not contain node_modules/tape/index.js');

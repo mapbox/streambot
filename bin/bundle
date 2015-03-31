@@ -15,7 +15,10 @@ function removemodules() {
 
 # Reinstall node modules for linux, without devDependencies
 removemodules > /dev/null
-npm install --production --target_platform=linux --target_arch=x64 > /dev/null 2>&1
+npm install --production \
+  --target=0.10.38 \
+  --target_platform=linux \
+  --target_arch=x64 > /dev/null 2>&1
 npm install --production aws-sdk dotenv > /dev/null 2>&1
 
 mkdir -p "$1/build"
