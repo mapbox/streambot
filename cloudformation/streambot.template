@@ -18,6 +18,20 @@
       "Default": ""
     }
   },
+  "Conditions": {
+    "LogToS3": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            {
+              "Ref": "LogBucket"
+            },
+            ""
+          ]
+        }
+      ]
+    }
+  },
   "Resources": {
     "Stream": {
       "Type" : "AWS::Kinesis::Stream",
@@ -155,6 +169,46 @@
                 }
               ]
             }
+          }
+        ]
+      }
+    },
+    "LogPolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Condition": "LogToS3",
+      "Properties": {
+        "PolicyName": "uploadlogs",
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "s3:PutObject"
+              ],
+              "Effect": "Allow",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref": "LogBucket"
+                      },
+                      "/",
+                      {
+                        "Ref": "LogPrefix"
+                      },
+                      "/*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "ExecutionRole"
           }
         ]
       }
