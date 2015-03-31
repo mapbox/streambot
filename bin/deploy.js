@@ -63,6 +63,13 @@ function deploy(service, script, environment, region, description, callback) {
 function getStackOutputs(stackName, region, callback) {
   var cfn = new AWS.CloudFormation({ region: region });
 
+  var outputs = {};
+
+  function outputToObject(outObject, output) {
+    outObject[output.OutputKey] = output.OutputValue;
+    return outObject;
+  }
+
   cfn.describeStacks({ StackName: stackName }, function(err, data) {
     if (err) return callback(err);
     if (!data.Stacks.length) return callback(new Error('Could not find stack ' + stackName));
@@ -73,14 +80,13 @@ function getStackOutputs(stackName, region, callback) {
 
     if (!streambotStack) return callback(new Error('Stack missing StreambotStack output'));
 
+    outputs = data.Stacks[0].Outputs.reduce(outputToObject, outputs);
+
     cfn.describeStacks({ StackName: streambotStack.OutputValue }, function(err, data) {
       if (err) return callback(err);
       if (!data.Stacks.length) return callback(new Error('Could not find stack ' + stackName));
 
-      var outputs = data.Stacks[0].Outputs.reduce(function(outputs, output) {
-        outputs[output.OutputKey] = output.OutputValue;
-        return outputs;
-      }, {});
+      outputs = data.Stacks[0].Outputs.reduce(outputToObject, outputs);
 
       callback(null, outputs);
     });

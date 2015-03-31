@@ -28,6 +28,7 @@ test('[deploy] getStackOutputs', function(assert) {
     assert.ok(keys.indexOf('StackRegion') > -1, 'found StackRegion output');
     assert.ok(keys.indexOf('LogBucket') > -1, 'found LogBucket output');
     assert.ok(keys.indexOf('LogPrefix') > -1, 'found LogPrefix output');
+    assert.ok(keys.indexOf('StreambotStack') > -1, 'found StreambotStack output from service template');
 
     assert.end();
   });
