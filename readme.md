@@ -13,8 +13,15 @@ You have a service that will involve consuming events from a Kinesis stream. Opt
 Your service is a node.js module. Follow these steps:
 
 1. create your module's `package.json` with `streambot` as a dependency
-2. add a `script` that references streambot's deploy script
-3. define your `main` module. This module should export your service function wrapped by streambot. For example:
+2. add a pacakge.json `script` that references streambot's deploy script
+  ```json
+  {
+    "scripts": {
+      "deploy": "streambot-deploy"
+    }
+  }
+  ```
+3. define `main` in package.json. This module should export your service function wrapped by streambot. For example:
   ```js
   var streambot = require('streambot');
   module.exports.streambot = streambot(function(records, callback) {
@@ -31,30 +38,32 @@ See the `streambot-example` directory.
 
 #### To deploy
 
-First, deploy your CloudFormation template using [mapbox-cli](https://github.com/mapbox/mapbox-cli).
-
-Next, deploy your lambda function:
+First, define an `<environment>` for your system. This might be something like `production` or `testing`. Create a CloudFormation stack using your template, and name your stack `<pacakge name>-<environment>`. Next, deploy your lambda function:
 
 ```
 npm run deploy <environment> [--region <region>]
 ```
 
-Where `deploy` is the name of the script in your service's package.json that references `streambot-deploy`. This will:
+This runs streambot's deploy scripts, which will:
 
 - write a `.env` file in your repository containing information about the resources, parameters, and outputs from your CloudFormation stack.
 - remove your existing `node_modules` directory, then reinstall for the appropriate platform/arch to run on Lambda
 - zip your service into a file and put it at `build/bundle.zip`
-- remove the `node_modules` directory again, before reinstalling without flags
-- deploy your bundle to Lambda
+- remove the `node_modules` directory again, before reinstalling without flags so you can keep working
+- deploy your bundle to Lambda with a function name equal to your
 
 ## What streambot provides
 
+#### Runtime environment
+
+Streambot provides a wrapper for your Lambda function
+- provides information to your function about your CloudFormation stack's parameters, resources, and outputs via `process.env`
+- provides `streambot.log`, a [fastlog](https://github.com/willwhite/fastlog) object that is capable of uploading your logs to an S# bucket/prefix of your choosing
+- sends metrics to CloudWatch indicating success or failure from your function, as well as an alarm that will trigger when errors occur
+
 #### Deployment scripts
 
-It provides scripts that can be used to deploy your Lambda function.
-
-- `streambot-bundle`: bundles you project's code and its dependencies into a zipfile suitable for upload to Lambda.
-- `streambot-deploy`: bundles and deploys your lambda function, setting appropriate triggers and roles. You should run this *after* you've deployed your service's CloudFormation template.
+`streambot-deploy` bundles and deploys your lambda function, setting appropriate event triggers and roles. You should run this *after* you've deployed your service's CloudFormation template so that it can bundle information about you CloudFormation stack in a `.env` file.
 
 #### AWS Resources
 
@@ -64,11 +73,6 @@ It creates a number of AWS resources, which can be accessed as CloudFormation st
 - `LambdaInvocationRole`: an IAM role that allows Lambda to read from the kinesis stream
 - `LambdaExecutionRole`: an IAM role that you can extend to provide permissions that your Lambda function requires to execute
 - `KinesisAdminRole`: an IAM role that an EC2 can assume which provides full privileges to manipulate the kinesis stream
-- `MetricName`: the name of the CloudWatch metric that tracks Lambda's success/failure
-
-#### Metrics and alarms
-
-It puts a wrapper around your Lambda function which sends metric data to CloudWatch indicating a successful or errored run. It also creates an alarm that will trigger when errors occur. You can subscribe an email address to receive these alarm notifications when you create the streambot stack.
 
 ## Gotchas
 
