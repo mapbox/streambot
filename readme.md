@@ -61,9 +61,9 @@ This runs streambot's deploy scripts, which will:
 #### Runtime environment
 
 Streambot provides a wrapper for your Lambda function
-- base64 decodes the `data` associated with each kinesis record 
+- base64 decodes the `data` associated with each kinesis record
 - provides information to your function about your CloudFormation stack's parameters, resources, and outputs via `process.env`
-- provides `streambot.log`, a [fastlog](https://github.com/willwhite/fastlog) object that is capable of uploading your logs to an S# bucket/prefix of your choosing
+- provides `streambot.log`, a [fastlog](https://github.com/willwhite/fastlog) object that is capable of uploading your logs to an S3 bucket/prefix of your choosing
 - sends metrics to CloudWatch indicating success or failure from your function, as well as an alarm that will trigger when errors occur
 
 #### Deployment scripts
