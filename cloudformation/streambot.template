@@ -9,16 +9,34 @@
     },
     "LogBucket": {
       "Type": "String",
-      "Description": "Optional S3 bucket to send logs to",
+      "Description": "Optional: S3 bucket to send logs to",
       "Default": ""
     },
     "LogPrefix": {
       "Type": "String",
-      "Description": "Optional S3 prefix to send logs to",
+      "Description": "Optional: S3 prefix to send logs to",
       "Default": ""
+    },
+    "KinesisStreamArn": {
+      "Type": "String",
+      "Description": "Optional: An existing Kinesis stream to trigger lambda events",
+      "Default": ""
+    },
+    "NumberOfShards": {
+      "Type": "Number",
+      "Description": "Optional: The number of shards to create in the Kinesis stream",
+      "Default": 1
     }
   },
   "Conditions": {
+    "CreateStream": {
+      "Fn::Equals": [
+        {
+          "Ref": "KinesisStreamArn"
+        },
+        ""
+      ]
+    },
     "LogToS3": {
       "Fn::Not": [
         {
@@ -34,9 +52,12 @@
   },
   "Resources": {
     "Stream": {
+      "Condition": "CreateStream",
       "Type" : "AWS::Kinesis::Stream",
         "Properties" : {
-          "ShardCount" : 1
+          "ShardCount" : {
+            "Ref": "NumberOfShards"
+          }
         }
     },
     "AlarmSNS": {
@@ -126,7 +147,15 @@
                           },
                           ":stream/",
                           {
-                            "Ref": "Stream"
+                            "Fn::If": [
+                              "CreateStream",
+                              {
+                                "Ref": "Stream"
+                              },
+                              {
+                                "Ref": "KinesisStreamArn"
+                              }
+                            ]
                           }
                         ]
                       ]
@@ -173,7 +202,7 @@
                   ],
                   "Effect":"Allow",
                   "Resource":"arn:aws:logs:*:*:*"
-                }   
+                }
               ]
             }
           }
@@ -264,7 +293,15 @@
                           },
                           ":stream/",
                           {
-                            "Ref": "Stream"
+                            "Fn::If": [
+                              "CreateStream",
+                              {
+                                "Ref": "Stream"
+                              },
+                              {
+                                "Ref": "KinesisStreamArn"
+                              }
+                            ]
                           }
                         ]
                       ]
@@ -294,7 +331,15 @@
             },
             ":stream/",
             {
-              "Ref": "Stream"
+              "Fn::If": [
+                "CreateStream",
+                {
+                  "Ref": "Stream"
+                },
+                {
+                  "Ref": "KinesisStreamArn"
+                }
+              ]
             }
           ]
         ]
