@@ -166,7 +166,14 @@
                     "cloudwatch:PutMetricData"
                   ],
                   "Resource": "*"
-                }
+                },
+                {
+                  "Action":[
+                    "logs:*"
+                  ],
+                  "Effect":"Allow",
+                  "Resource":"arn:aws:logs:*:*:*"
+                }   
               ]
             }
           }
