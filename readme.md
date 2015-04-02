@@ -79,6 +79,20 @@ It creates a number of AWS resources, which can be accessed as CloudFormation st
 - `LambdaExecutionRole`: an IAM role that you can extend to provide permissions that your Lambda function requires to execute
 - `KinesisAdminRole`: an IAM role that an EC2 can assume which provides full privileges to manipulate the kinesis stream
 
+## Streambot configuration
+
+The streambot stack takes the following parameters, all of which are optional:
+
+Name | Description
+--- | ---
+AlarmEmail | Email address to receive notifications of errored runs
+LogBucket | S3 bucket to send logs to
+LogPrefix | S3 prefix to send logs to
+KinesisStreamArn | An existing Kinesis stream to trigger lambda events
+NumberOfShards | The number of shards to create in the Kinesis stream
+
+Note that if you don't provide a `KinesisStreamArn` then streambot will create one for you. `NumberOfShards` only pertains to a stream that streambot creates for you.
+
 ## Gotchas
 
 - You should not use any node.js modules that include C++ addons **unless** they are pre-built with [node-pre-gyp](https://github.com/mapbox/node-pre-gyp).

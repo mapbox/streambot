@@ -10,6 +10,18 @@ var example = path.resolve(__dirname, '..', 'streambot-example');
 var template = path.join(example, 'streambot-example.template');
 template = JSON.parse(fs.readFileSync(template, 'utf8'));
 
+test('[deploy] copy template to S3', function(assert) {
+  var s3 = new AWS.S3();
+  s3.putObject({
+    Bucket: 'cf-templates-mapbox-us-east-1',
+    Key: 'streambot/testing.template',
+    Body: fs.createReadStream(path.resolve(__dirname, '..', 'cloudformation', 'streambot.template'))
+  }, function(err) {
+    if (err) throw err;
+    assert.end();
+  });
+});
+
 stack.start(template);
 
 test('[deploy] getStackOutputs', function(assert) {

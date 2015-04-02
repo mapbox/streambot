@@ -30,7 +30,7 @@ if [ -f "$zipfile" ]; then
 fi
 
 # Make a zip archive
-zip -r -q "$zipfile" . -x ./.git* -x ./build* > /dev/null
+zip -r -q "$zipfile" . -x *.git* -x ./build* > /dev/null
 
 # Reinstall your platform's dependencies so you can keep working
 removemodules > /dev/null 2>&1
