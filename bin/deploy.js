@@ -80,6 +80,7 @@ function deploy(service, script, environment, region, description, callback) {
     .await(function(err) {
       if (err) return callback(err);
       fastlog.info('Set function event source and completed deploy');
+      callback();
     });
 }
 
