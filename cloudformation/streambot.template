@@ -134,30 +134,30 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:aws:kinesis:",
-                          {
-                            "Ref": "AWS::Region"
-                          },
-                          ":",
-                          {
-                            "Ref": "AWS::AccountId"
-                          },
-                          ":stream/",
-                          {
-                            "Fn::If": [
-                              "CreateStream",
+                      "Fn::If": [
+                        "CreateStream",
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:aws:kinesis:",
+                              {
+                                "Ref": "AWS::Region"
+                              },
+                              ":",
+                              {
+                                "Ref": "AWS::AccountId"
+                              },
+                              ":stream/",
                               {
                                 "Ref": "Stream"
-                              },
-                              {
-                                "Ref": "KinesisStreamArn"
                               }
                             ]
-                          }
-                        ]
+                          ]
+                        },
+                        {
+                          "Ref": "KinesisStreamArn"
+                        }
                       ]
                     }
                   ]
@@ -280,30 +280,30 @@
                   ],
                   "Resource": [
                     {
-                      "Fn::Join": [
-                        "",
-                        [
-                          "arn:aws:kinesis:",
-                          {
-                            "Ref": "AWS::Region"
-                          },
-                          ":",
-                          {
-                            "Ref": "AWS::AccountId"
-                          },
-                          ":stream/",
-                          {
-                            "Fn::If": [
-                              "CreateStream",
+                      "Fn::If": [
+                        "CreateStream",
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:aws:kinesis:",
+                              {
+                                "Ref": "AWS::Region"
+                              },
+                              ":",
+                              {
+                                "Ref": "AWS::AccountId"
+                              },
+                              ":stream/",
                               {
                                 "Ref": "Stream"
-                              },
-                              {
-                                "Ref": "KinesisStreamArn"
                               }
                             ]
-                          }
-                        ]
+                          ]
+                        },
+                        {
+                          "Ref": "KinesisStreamArn"
+                        }
                       ]
                     }
                   ]
