@@ -6,6 +6,7 @@ var path = require('path');
 var AWS = require('aws-sdk');
 var queue = require('queue-async');
 var _ = require('underscore');
+var fastlog = require('fastlog')('streambot-deploy', 'info');
 
 module.exports.deploy = deploy;
 module.exports.getStackOutputs = getStackOutputs;
@@ -25,39 +26,58 @@ function deploy(service, script, environment, region, description, callback) {
 
   queue(1)
     .defer(function(next) {
+      fastlog.info('Starting deploy of %s', stackName);
       getStackOutputs(stackName, region, function(err, out) {
         outputs = out;
         next(err);
       });
     })
     .defer(function(next) {
+      fastlog.info('Found stack outputs');
+      _(outputs).each(function(val, k) {
+        fastlog.debug('%s = %s', k, val);
+      });
       getStackParameters(stackName, region, function(err, params) {
         parameters = params;
         next(err);
       });
     })
     .defer(function(next) {
+      fastlog.info('Found stack parameters');
+      _(parameters).each(function(val, k) {
+        fastlog.debug('%s = %s', k, val);
+      });
       getStackResources(stackName, region, function(err, res) {
         resources = res;
         next(err);
       });
     })
     .defer(function(next) {
+      fastlog.info('Found stack resources');
+      _(resources).each(function(val, k) {
+        fastlog.debug('%s = %s', k, val);
+      });
       wrap(_.extend({ StackName: stackName }, parameters, resources, outputs), next);
     })
     .defer(function(next) {
+      fastlog.info('Setup environment');
       bundle(function(err, zip) {
         zipfile = zip;
         next(err);
       });
     })
     .defer(function(next) {
+      fastlog.info('Bundled %s', zipfile);
       uploadFunction(region, stackName, zipfile, script, outputs.LambdaExecutionRole, description, next);
     })
     .defer(function(next) {
+      fastlog.info('Uploaded function');
       setEventSource(region, outputs.KinesisStream, stackName, outputs.LambdaInvocationRole, next);
     })
-    .await(callback);
+    .await(function(err) {
+      if (err) return callback(err);
+      fastlog.info('Set function event source and completed deploy');
+    });
 }
 
 function getStackOutputs(stackName, region, callback) {
@@ -158,6 +178,11 @@ function uploadFunction(region, fnName, zipfile, script, executionRole, descript
     Timeout: 60
   };
 
+  fastlog.debug('uploadFunction parameters');
+  _(params).each(function(val, k) {
+    fastlog.debug('%s = %s', k, val);
+  });
+
   lambda.uploadFunction(params, function(err, data) {
     if (err) return callback(err);
     callback(null, data.FunctionARN);
@@ -174,7 +199,7 @@ function setEventSource(region, streamArn, fnName, invocationRole, callback) {
     if (err) return callback(err);
     if (data.EventSources.length) return callback(null, data.EventSources[0].UUID);
 
-    lambda.addEventSource({
+    var params = {
       EventSource: streamArn,
       FunctionName: fnName,
       Role: invocationRole,
@@ -182,7 +207,14 @@ function setEventSource(region, streamArn, fnName, invocationRole, callback) {
       Parameters: {
         InitialPositionInStream: 'TRIM_HORIZON'
       }
-    }, function(err, data) {
+    };
+
+    fastlog.debug('addEventSource parameters');
+    _(params).each(function(val, k) {
+      fastlog.debug('%s = %s', k, val);
+    });
+
+    lambda.addEventSource(params, function(err, data) {
       if (err) return callback(err);
       callback(null, data.UUID);
     });
