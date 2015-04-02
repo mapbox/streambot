@@ -37,6 +37,7 @@ function deploy(service, script, environment, region, description, callback) {
       _(outputs).each(function(val, k) {
         fastlog.debug('%s = %s', k, val);
       });
+
       getStackParameters(stackName, region, function(err, params) {
         parameters = params;
         next(err);
@@ -47,6 +48,7 @@ function deploy(service, script, environment, region, description, callback) {
       _(parameters).each(function(val, k) {
         fastlog.debug('%s = %s', k, val);
       });
+
       getStackResources(stackName, region, function(err, res) {
         resources = res;
         next(err);
@@ -57,6 +59,7 @@ function deploy(service, script, environment, region, description, callback) {
       _(resources).each(function(val, k) {
         fastlog.debug('%s = %s', k, val);
       });
+
       wrap(_.extend({ StackName: stackName }, parameters, resources, outputs), next);
     })
     .defer(function(next) {
