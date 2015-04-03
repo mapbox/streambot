@@ -58,7 +58,7 @@ test('[runtime] service success', function(assert) {
 
       var s3url = {
         Bucket: 'mapbox',
-        Key: 'streambot-test/streambot-test-shardId-000000000000:49545115243490985018280067714973144582180062593244200961'
+        Key: 'streambot-test-prefix/streambot-test/shardId-000000000000/49545115243490985018280067714973144582180062593244200961'
       };
 
       s3.getObject(s3url, function(err, data) {

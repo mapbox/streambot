@@ -23,7 +23,7 @@ test('[bundle] npm install', function(assert) {
 test('[bundle] add .git folder', function(assert) {
   var git = path.join(example, '.git');
   fs.mkdir(git, function(err) {
-    if (err) throw err;
+    if (err && err.code !== 'EEXIST') throw err;
     fs.writeFile(path.join(git, 'should-not-bundle'), 'nope', function(err) {
       if (err) throw err;
       assert.end();
