@@ -13,7 +13,7 @@ You have a service that will involve consuming events from a Kinesis stream. Opt
 Your service is a node.js module. Follow these steps:
 
 1. create your module's `package.json` with `streambot` as a dependency
-2. add a pacakge.json `script` that references streambot's deploy script
+2. add a package.json `script` that references streambot's deploy script
 
   ```json
   {
