@@ -45,8 +45,13 @@ module.exports = function(service) {
         var prefix = process.env.LogPrefix;
 
         if (bucket) {
-          var filename = [process.env.StackName, eventIds.join('-')].join('-');
+          var filename = [
+            process.env.StackName,
+            eventIds[0].split(':')[0],
+            eventIds.slice(-1)[0].split(':')[1]
+          ].join('/');
           if (prefix) filename = [prefix, filename].join('/');
+
           return s3.putObject({
             Bucket: bucket,
             Key: filename,
