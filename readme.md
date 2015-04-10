@@ -1,6 +1,6 @@
 # streambot
 
-[![Build Status](https://travis-ci.org/mapbox/streambot.svg&branch=master)](https://travis-ci.org/mapbox/streambot)
+[![Build Status](https://travis-ci.org/mapbox/streambot.svg?branch=master)](https://travis-ci.org/mapbox/streambot)
 
 A sibling of Watchbot, focused on using Lambda to consume records from Kinesis.
 
