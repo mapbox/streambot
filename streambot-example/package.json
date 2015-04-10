@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "example of using streambot",
   "dependencies": {
-    "aws-sdk": "^2.1.20",
+    "aws-sdk": "2.1.22",
     "mapnik": "^3.2.0",
     "streambot": "../"
   },

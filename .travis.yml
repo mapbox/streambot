@@ -9,5 +9,5 @@ before_install:
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/$(git describe --tags --exact-match).template; fi
 env:
   global:
-  - secure: MHp9BcYKMSIr6XpXUjiQOUSyxQGEfn6Fj2phZi1s3CM0fuBkAbsi9es7zLF+RI3iEmDxzaxAo+RbMuu7K9neh5EcTgo2Kx9If4tK8fCkzM91oot6gSW+GrkasNM5LXodlTMPxdY9Y86tAt6Zz2NY7P+Z9xN8zqXc5qXp+7SzT1c=
-  - secure: tZRjBSymrKvNyteDzOr9vw1xOw71Xhdp6xZjrj8GXpEMBWzkN9o8YuBkxXqOM6yAVMFHDQr+u78rkWWC5a0N1D68gZssFYAq5pPUZWWBfn1JHIJW+rUEPeIIvJwySgkOtjSRjfFt/5eN/474eVNKetXbp/X1o3lh9bDH1DuaSyk=
+  - secure: zqODOOMRvXuvRbd6y5COqRoGbsC/gS7eScmwM/QN4LGRgXa6Jhx4/T+ObNZChBrV66R3L8dmZQL+EfuPDtCcoCekVpPRl0kQCAUQ3eXp6oS3CNbIsmSMQPBGex4psoBkZ5tj8B+eYW/EfTpPcykLMetiRyqdvCx/y8g3Ke5PWqQ=
+  - secure: 1FI1bH/tJkGepQEifh/N5Y+5nd4Ylp3Z0hxJHryuDiIovRD6/WIzHVDW0I94rgiVEaRZ2uUcuyJtZ7vyCbJrNrFdNOmMQuKTWM5JaiCPCefXeI/iKZNdU6GzXbipGgHIle6GV+21b2qCazkUZOcOP7a7JGrmzcRt+o1b5pHBTBI=
