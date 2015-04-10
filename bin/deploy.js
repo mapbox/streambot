@@ -12,7 +12,7 @@ var getStackParameters = lib.getStackParameters;
 var getStackResources = lib.getStackResources;
 var wrap = lib.wrap;
 var bundle = lib.bundle;
-var uploadFunction = lib.uploadFunction;
+var deployFunction = lib.deployFunction;
 var setEventSource = lib.setEventSource;
 
 function deploy(service, script, environment, region, description, callback) {
@@ -69,11 +69,11 @@ function deploy(service, script, environment, region, description, callback) {
     })
     .defer(function(next) {
       fastlog.info('Bundled %s', zipfile);
-      uploadFunction(region, stackName, zipfile, script, outputs.LambdaExecutionRole, description, next);
+      deployFunction(region, stackName, zipfile, script, outputs.LambdaExecutionRole, description, next);
     })
     .defer(function(next) {
       fastlog.info('Uploaded function');
-      setEventSource(region, outputs.KinesisStream, stackName, outputs.LambdaInvocationRole, next);
+      setEventSource(region, outputs.KinesisStream, stackName, next);
     })
     .await(function(err) {
       if (err) return callback(err);

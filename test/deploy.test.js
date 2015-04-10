@@ -33,7 +33,6 @@ test('[deploy] getStackOutputs', function(assert) {
 
     var keys = Object.keys(outputs);
     assert.ok(keys.indexOf('KinesisStream') > -1, 'found KinesisStream output');
-    assert.ok(keys.indexOf('LambdaInvocationRole') > -1, 'found LambdaInvocationRole output');
     assert.ok(keys.indexOf('LambdaExecutionRole') > -1, 'found LambdaExecutionRole output');
     assert.ok(keys.indexOf('LambdaExecutionRoleName') > -1, 'found LambdaExecutionRoleName output');
     assert.ok(keys.indexOf('KinesisAdminRole') > -1, 'found KinesisAdminRole output');
@@ -118,13 +117,13 @@ test('[deploy] bundle', function(assert) {
   });
 });
 
-test('[deploy] uploadFunction', function(assert) {
+test('[deploy] deployFunction', function(assert) {
   process.chdir(example);
 
   lib.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
-    lib.uploadFunction(
+    lib.deployFunction(
       'us-east-1',
       stack.stackName,
       path.resolve(__dirname, 'fixtures', 'bundle.zip'),
@@ -142,7 +141,7 @@ test('[deploy] uploadFunction', function(assert) {
         if (err) throw err;
 
         var fn = data.Functions.filter(function(fn) {
-          return fn.FunctionARN === arn;
+          return fn.FunctionArn === arn;
         })[0];
 
         assert.ok(fn, 'function was uploaded');
@@ -162,7 +161,7 @@ test('[deploy] setEventSource', function(assert) {
   lib.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
-    lib.uploadFunction(
+    lib.deployFunction(
       'us-east-1',
       stack.stackName,
       path.resolve(__dirname, 'fixtures', 'bundle.zip'),
@@ -179,7 +178,6 @@ test('[deploy] setEventSource', function(assert) {
         'us-east-1',
         outputs.KinesisStream,
         stack.stackName,
-        outputs.LambdaInvocationRole,
         evented
       );
     }
@@ -188,7 +186,7 @@ test('[deploy] setEventSource', function(assert) {
       assert.ifError(err, 'set event source');
 
       var lambda = new AWS.Lambda({ region: 'us-east-1' });
-      lambda.getEventSource({ UUID: uuid }, function(err) {
+      lambda.getEventSourceMapping({ UUID: uuid }, function(err) {
         assert.ifError(err, 'got event source');
 
         lambda.deleteFunction({ FunctionName: stack.stackName }, function(err) {
@@ -228,11 +226,11 @@ test('[deploy] deploy', function(assert) {
 
       assert.ok(fnDescription, 'uploaded function');
 
-      lambda.listEventSources({
+      lambda.listEventSourceMappings({
         FunctionName: fnName
       }, function(err, data) {
         assert.ifError(err, 'listed event sources');
-        assert.equal(data.EventSources.length, 1, 'attached event source');
+        assert.equal(data.EventSourceMappings.length, 1, 'attached event source');
 
         invoke();
       });

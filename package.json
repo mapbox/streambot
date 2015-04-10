@@ -35,7 +35,7 @@
     "noarg": true
   },
   "dependencies": {
-    "aws-sdk": "2.1.22",
+    "aws-sdk": "^2.1.23",
     "dotenv": "^1.0.0",
     "fastlog": "^1.1.0",
     "minimist": "^1.1.1",
