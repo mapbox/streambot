@@ -5,6 +5,7 @@ var fs = require('fs');
 var exec = require('child_process').exec;
 var AWS = require('aws-sdk');
 var deploy = require('../bin/deploy');
+var lib = require('..').deploy;
 
 var example = path.resolve(__dirname, '..', 'streambot-example');
 var template = path.join(example, 'streambot-example.template');
@@ -27,7 +28,7 @@ stack.start(template);
 test('[deploy] getStackOutputs', function(assert) {
   process.chdir(example);
 
-  deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
+  lib.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     assert.ifError(err, 'got stack outputs');
 
     var keys = Object.keys(outputs);
@@ -49,7 +50,7 @@ test('[deploy] getStackOutputs', function(assert) {
 test('[deploy] getStackParameters', function(assert) {
   process.chdir(example);
 
-  deploy.getStackParameters(stack.stackName, 'us-east-1', function(err, params) {
+  lib.getStackParameters(stack.stackName, 'us-east-1', function(err, params) {
     assert.ifError(err, 'got stack parameters');
     assert.deepEqual(params, {});
     assert.end();
@@ -59,7 +60,7 @@ test('[deploy] getStackParameters', function(assert) {
 test('[deploy] getStackResources', function(assert) {
   process.chdir(example);
 
-  deploy.getStackResources(stack.stackName, 'us-east-1', function(err, resources) {
+  lib.getStackResources(stack.stackName, 'us-east-1', function(err, resources) {
     assert.ifError(err, 'got stack resources');
 
     var keys = Object.keys(resources);
@@ -79,7 +80,7 @@ test('[deploy] wrap', function(assert) {
 
   if (fs.existsSync('.env')) fs.unlinkSync('.env');
 
-  deploy.wrap(env, function(err) {
+  lib.wrap(env, function(err) {
     assert.ifError(err, 'wrapped');
 
     assert.ok(fs.existsSync('.env'), 'created .env');
@@ -110,7 +111,7 @@ test('[deploy] bundle', function(assert) {
 
   var zip = path.join('build', 'bundle.zip');
   if (fs.existsSync(zip)) fs.unlinkSync(zip);
-  deploy.bundle(function(err) {
+  lib.bundle(function(err) {
     assert.ifError(err, 'bundled');
     assert.ok(fs.existsSync(zip), 'created bundle');
     assert.end();
@@ -120,10 +121,10 @@ test('[deploy] bundle', function(assert) {
 test('[deploy] uploadFunction', function(assert) {
   process.chdir(example);
 
-  deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
+  lib.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
-    deploy.uploadFunction(
+    lib.uploadFunction(
       'us-east-1',
       stack.stackName,
       path.resolve(__dirname, 'fixtures', 'bundle.zip'),
@@ -158,10 +159,10 @@ test('[deploy] uploadFunction', function(assert) {
 test('[deploy] setEventSource', function(assert) {
   process.chdir(example);
 
-  deploy.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
+  lib.getStackOutputs(stack.stackName, 'us-east-1', function(err, outputs) {
     if (err) throw err;
 
-    deploy.uploadFunction(
+    lib.uploadFunction(
       'us-east-1',
       stack.stackName,
       path.resolve(__dirname, 'fixtures', 'bundle.zip'),
@@ -174,7 +175,7 @@ test('[deploy] setEventSource', function(assert) {
     function uploaded(err) {
       if (err) throw err;
 
-      deploy.setEventSource(
+      lib.setEventSource(
         'us-east-1',
         outputs.KinesisStream,
         stack.stackName,

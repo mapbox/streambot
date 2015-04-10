@@ -2,7 +2,10 @@ var AWS = require('aws-sdk');
 var fastlog = require('fastlog');
 var dotenv = require('dotenv');
 
-module.exports = function(service) {
+module.exports = streambot;
+module.exports.deploy = require('./lib/deploy');
+
+function streambot(service) {
   dotenv.load();
 
   var log = module.exports.log = new Logger(fastlog(process.env.StackName, 'debug'));
@@ -77,7 +80,7 @@ module.exports = function(service) {
 
     service(records, callback);
   };
-};
+}
 
 function Logger(fastlog) {
   var logs = [];
