@@ -96,78 +96,6 @@
         "Threshold": "0"
       }
     },
-    "InvocationRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        },
-        "Path": "/lambda/",
-        "Policies": [
-          {
-            "PolicyName": "InvocationPolicy",
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "lambda:InvokeFunction"
-                  ],
-                  "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "kinesis:DescribeStream",
-                    "kinesis:GetRecords",
-                    "kinesis:GetShardIterator",
-                    "kinesis:ListStreams"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::If": [
-                        "CreateStream",
-                        {
-                          "Fn::Join": [
-                            "",
-                            [
-                              "arn:aws:kinesis:",
-                              {
-                                "Ref": "AWS::Region"
-                              },
-                              ":",
-                              {
-                                "Ref": "AWS::AccountId"
-                              },
-                              ":stream/",
-                              {
-                                "Ref": "Stream"
-                              }
-                            ]
-                          ]
-                        },
-                        {
-                          "Ref": "KinesisStreamArn"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
     "ExecutionRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -197,8 +125,46 @@
                   "Resource": "*"
                 },
                 {
+                  "Effect": "Allow",
+                  "Action": [
+                    "kinesis:DescribeStream",
+                    "kinesis:GetRecords",
+                    "kinesis:GetShardIterator",
+                    "kinesis:ListStreams"
+                  ],
+                  "Resource": {
+                    "Fn::If": [
+                      "CreateStream",
+                      {
+                        "Fn::Join": [
+                          "",
+                          [
+                            "arn:aws:kinesis:",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                              "Ref": "AWS::AccountId"
+                            },
+                            ":stream/",
+                            {
+                              "Ref": "Stream"
+                            }
+                          ]
+                        ]
+                      },
+                      {
+                        "Ref": "KinesisStreamArn"
+                      }
+                    ]
+                  }
+                },
+                {
                   "Action":[
-                    "logs:*"
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
                   ],
                   "Effect":"Allow",
                   "Resource":"arn:aws:logs:*:*:*"
@@ -342,14 +308,6 @@
           {
             "Ref": "KinesisStreamArn"
           }
-        ]
-      }
-    },
-    "LambdaInvocationRole": {
-      "Value": {
-        "Fn::GetAtt" : [
-          "InvocationRole",
-          "Arn"
         ]
       }
     },
