@@ -5,16 +5,11 @@ set -e
 # Only argument is the directory to bundle
 cd "$1"
 
-function removemodules() {
-  for filename in node_modules/*; do
-    if [ "$filename" != "node_modules/streambot" ]; then
-      npm uninstall "$(basename "$filename")"
-    fi
-  done
-}
+mkdir -p "$1/build"
+rm -rf "$1/build/package.json" "$1/build/node_modules"
+cp "$1/package.json" "$1/build/package.json"
+cd "$1/build/"
 
-# Reinstall node modules for linux, without devDependencies
-removemodules > /dev/null
 npm install --production \
   --target=0.10.38 \
   --target_platform=linux \
@@ -23,17 +18,9 @@ npm install --production \
 # Install streambot runtime dependencies
 npm install --production aws-sdk dotenv fastlog > /dev/null 2>&1
 
-mkdir -p "$1/build"
-zipfile="$1/build/bundle.zip"
-if [ -f "$zipfile" ]; then
-  rm "$zipfile"
-fi
-
 # Make a zip archive
-zip -r -q "$zipfile" . -x *.git* -x ./build* > /dev/null
-
-# Reinstall your platform's dependencies so you can keep working
-removemodules > /dev/null 2>&1
-npm install > /dev/null 2>&1
+zipfile="$1/build/bundle.zip"
+zip -r -q "$zipfile" . -x *.git* -x ./build* -x ./node_modules > /dev/null 2>&1
+zip -r -q "$zipfile" "$1/build/node_modules" > /dev/null 2>&1
 
 echo "$zipfile"
