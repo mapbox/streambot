@@ -34,6 +34,8 @@ function streambot(service) {
 
       var eventIds = event.Records.map(function(record) {
         return record.eventID;
+      }).filter(function(record) {
+        return record != undefined;
       });
 
       function finished() {
@@ -72,10 +74,13 @@ function streambot(service) {
 
     var records = event.Records
       .filter(function(record) {
-        return record.eventName === 'aws:kinesis:record';
+        return !record.eventName || record.eventName === 'aws:kinesis:record';
       }).map(function(record) {
-        record.kinesis.data = new Buffer(record.kinesis.data, 'base64').toString();
-        return record.kinesis;
+        if (record.kinesis) {
+          record.kinesis.data = new Buffer(record.kinesis.data, 'base64').toString();
+          return record.kinesis;
+        }
+        return record;
       });
 
     service(records, callback);
