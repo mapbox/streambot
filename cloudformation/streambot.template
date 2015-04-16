@@ -22,6 +22,11 @@
       "Description": "Optional: An existing Kinesis stream to trigger lambda events",
       "Default": ""
     },
+    "SNSTopicArn": {
+      "Type": "String",
+      "Description": "Optional: An existing SNS Topic to trigger lambda events",
+      "Default": ""
+    },
     "NumberOfShards": {
       "Type": "Number",
       "Description": "Optional: The number of shards to create in the Kinesis stream",
@@ -309,6 +314,11 @@
             "Ref": "KinesisStreamArn"
           }
         ]
+      }
+    },
+    "SNSTopicArn": {
+      "Value": {
+        "Ref": "SNSTopicArn"
       }
     },
     "LambdaExecutionRole": {
