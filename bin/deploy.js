@@ -85,7 +85,7 @@ function deploy(service, script, environment, region, description, callback) {
 if (require.main === module) {
   var args = require('minimist')(process.argv.slice(2));
   var service = process.env.npm_package_name;
-  var script = process.env.npm_package_main;
+  var script = process.env.npm_package_config_streambot;
   var environment = args._[0];
   var region = args.region || 'us-east-1';
   var description = process.env.npm_package_description;
