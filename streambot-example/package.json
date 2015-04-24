@@ -13,5 +13,7 @@
   "scripts": {
     "deploy": "streambot-deploy"
   },
-  "main": "index.js"
+  "config": {
+    "streambot": "index.js"
+  }
 }

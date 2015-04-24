@@ -23,7 +23,7 @@ Your service is a node.js module. Follow these steps:
   }
   ```
 
-3. define `main` in package.json. This module should export your service function wrapped by streambot. For example:
+3. define `config.streambot` in package.json. This module should export your service function wrapped by streambot. For example:
 
   ```js
   var streambot = require('streambot');
