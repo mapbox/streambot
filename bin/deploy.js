@@ -73,7 +73,11 @@ function deploy(service, script, environment, region, description, callback) {
     })
     .defer(function(next) {
       fastlog.info('Uploaded function');
-      setEventSource(region, outputs.KinesisStream, stackName, next);
+      if (outputs.SNSTopicArn != "") {
+        setEventSource(region, outputs.SNSTopicArn, stackName, next);
+      } else {
+        setEventSource(region, outputs.KinesisStream, stackName, next);
+      }
     })
     .await(function(err) {
       if (err) return callback(err);
