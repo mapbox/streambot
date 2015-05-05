@@ -68,8 +68,6 @@ function streambot(service) {
       });
     }
 
-    log.info(JSON.stringify(event));
-
     var records = event.Records
       .filter(function(record) {
         return record.eventName === 'aws:kinesis:record';
