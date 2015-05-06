@@ -238,7 +238,7 @@ test('[deploy] deploy', function(assert) {
   }
 
   function invoke() {
-    var e = require(path.resolve(__dirname, 'fixtures', 'event.json'));
+    var e = require(path.resolve(__dirname, 'fixtures', 'event'))();
 
     lambda.invokeAsync({
       FunctionName: fnName,
