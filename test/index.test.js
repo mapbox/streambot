@@ -67,7 +67,6 @@ test('[runtime] service success', function(assert) {
         data.Body.toString().split('\n').forEach(function(line, i) {
           var re;
           if (i === 0) re = /\[.+?\] \[info\] \[streambot-test\] successful/;
-          else if (i === 1) re = /\[streambot-test\] putMetricData \{"Namespace":"streambot","MetricData":\[\{"MetricName":"streambot-test-metric","Value":1,"Dimensions":\[\{"Name":"Status","Value":"Success"\}\]\}\]\}/;
           else if (line) return assert.fail('extra logs sent to S3');
 
           assert.ok(re.test(line), 'expected log sent to S3');

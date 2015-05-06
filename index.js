@@ -42,7 +42,6 @@ function streambot(service) {
 
       cloudwatch.putMetricData(params, function(error) {
         if (error) log.error(error);
-        else log.info('putMetricData ' + JSON.stringify(params));
 
         var bucket = process.env.LogBucket;
         var prefix = process.env.LogPrefix;
