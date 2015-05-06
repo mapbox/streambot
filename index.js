@@ -46,7 +46,7 @@ function streambot(service) {
         var bucket = process.env.LogBucket;
         var prefix = process.env.LogPrefix;
 
-        if (bucket) {
+        if (bucket && log.logs().length) {
           var filename = [
             process.env.StackName,
             eventIds[0].split(':')[0],

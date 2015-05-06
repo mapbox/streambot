@@ -1,6 +1,6 @@
 var test = require('tape');
 var streambot = require('..');
-var e = require('./fixtures/event.json');
+var e = require('./fixtures/event');
 var path = require('path');
 var fs = require('fs');
 var AWS = require('aws-sdk');
@@ -79,5 +79,69 @@ test('[runtime] service success', function(assert) {
     }
   };
 
-  streambot(service)(e, context);
+  streambot(service)(e(), context);
+});
+
+test('[runtime] no logs = nothing to s3', function(assert) {
+  // move to fixtures dir to utilize .env fixture
+  process.chdir(path.resolve(__dirname, 'fixtures'));
+
+  var s3 = new AWS.S3();
+
+  function service(records, callback) {
+    assert.deepEqual(
+      records,
+      [
+        {
+          data: 'Hello, this is a test 123.',
+          kinesisSchemaVersion: '1.0',
+          partitionKey: 'partitionKey-3',
+          sequenceNumber: '49545115243490985018280067714973144582180062593244200961'
+        }
+      ],
+      'expected records passed to service'
+    );
+
+    Object.keys(env).forEach(function(key) {
+      assert.equal(process.env[key], env[key], key + ' loaded in env');
+    });
+
+    assert.equal(typeof streambot.log.debug, 'function', 'provided log.debug function');
+    assert.equal(typeof streambot.log.info, 'function', 'provided log.info function');
+    assert.equal(typeof streambot.log.warn, 'function', 'provided log.warn function');
+    assert.equal(typeof streambot.log.error, 'function', 'provided log.error function');
+    assert.equal(typeof streambot.log.fatal, 'function', 'provided log.fatal function');
+
+    callback();
+  }
+
+  var context = {
+    done: function(err, msg) {
+      assert.ifError(err, 'no error reported to lambda');
+      assert.equal(
+        msg,
+        'Processed events: shardId-000000000000:49545115243490985018280067714973144582180062593244200961',
+        'expected message reported to lambda'
+      );
+
+      var s3url = {
+        Bucket: 'mapbox',
+        Key: 'streambot-test-prefix/streambot-test/shardId-000000000000/49545115243490985018280067714973144582180062593244200961'
+      };
+
+      s3.getObject(s3url, function(err, data) {
+        if (data && data.Body) {
+          assert.fail('Should not upload empty log to S3');
+          s3.deleteObject(s3url, function() {
+            assert.end();
+          });
+        } else {
+          assert.pass('Does not upload empty log to S3');
+          assert.end();
+        }
+      });
+    }
+  };
+
+  streambot(service)(e(), context);
 });
