@@ -44,14 +44,24 @@
                 },
                 {
                   "Resource": [
-                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*",
-                    "arn:aws:s3:::mapbox/streambot-test*"
+                    "arn:aws:s3:::mapbox-sandbox/streambot-test*"
                   ],
                   "Action": [
                     "s3:GetObject",
                     "s3:PutObject",
                     "s3:PutObjectACL",
                     "s3:DeleteObject"
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Resource": [
+                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*"
+                  ],
+                  "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:PutObjectACL"
                   ],
                   "Effect": "Allow"
                 }

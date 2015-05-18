@@ -8,7 +8,7 @@
         "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/testing.template",
         "Parameters": {
           "AlarmEmail": "my-email@domain.com",
-          "LogBucket": "mapbox",
+          "LogBucket": "mapbox-sandbox",
           "LogPrefix": "streambot-test"
         }
       }

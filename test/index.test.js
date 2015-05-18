@@ -58,7 +58,7 @@ test('[runtime] service success', function(assert) {
       );
 
       var s3url = {
-        Bucket: 'mapbox',
+        Bucket: 'mapbox-sandbox',
         Key: 'streambot-test-prefix/streambot-test/shardId-000000000000/49545115243490985018280067714973144582180062593244200961'
       };
 
@@ -126,7 +126,7 @@ test('[runtime] no logs = nothing to s3', function(assert) {
       );
 
       var s3url = {
-        Bucket: 'mapbox',
+        Bucket: 'mapbox-sandbox',
         Key: 'streambot-test-prefix/streambot-test/shardId-000000000000/49545115243490985018280067714973144582180062593244200961'
       };
 
