@@ -8,7 +8,7 @@ module.exports.deploy = require('./lib/deploy');
 function streambot(service) {
   dotenv.load();
 
-  var log = module.exports.log = new Logger(fastlog(process.env.StackName, 'debug'));
+  var log = module.exports.log = Logger(fastlog(process.env.StackName, 'debug'));
 
   return function streambot(event, context) {
     function callback(err) {
@@ -75,6 +75,7 @@ function streambot(service) {
         return record.kinesis;
       });
 
+    log.clear();
     service(records, callback);
   };
 }
@@ -105,6 +106,10 @@ function Logger(fastlog) {
 
     logs: function() {
       return logs.join('\n');
+    },
+
+    clear: function() {
+      logs = [];
     }
 
   };
