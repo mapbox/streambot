@@ -4,10 +4,8 @@ node_js:
 sudo: false
 env:
   global:
-  - secure: zqODOOMRvXuvRbd6y5COqRoGbsC/gS7eScmwM/QN4LGRgXa6Jhx4/T+ObNZChBrV66R3L8dmZQL+EfuPDtCcoCekVpPRl0kQCAUQ3eXp6oS3CNbIsmSMQPBGex4psoBkZ5tj8B+eYW/EfTpPcykLMetiRyqdvCx/y8g3Ke5PWqQ=
-  - secure: 1FI1bH/tJkGepQEifh/N5Y+5nd4Ylp3Z0hxJHryuDiIovRD6/WIzHVDW0I94rgiVEaRZ2uUcuyJtZ7vyCbJrNrFdNOmMQuKTWM5JaiCPCefXeI/iKZNdU6GzXbipGgHIle6GV+21b2qCazkUZOcOP7a7JGrmzcRt+o1b5pHBTBI=
-  - secure: kqiH7RF7jklpdWKyoAW0meAlx6wPULLoRtB7PFMBzrJK7icJ2kaUR9HeTBHnoV8WP3hp2dlYwgQrqEL4cF3ZLVLnp1BkZpzocJlGBcMJF4bz7wzmP8F1JdG9ZY8S0zIToH35cdNIfZO84FgtqyWcFRSNfAJNfAbCiIGNjKtv+wM=
-  - secure: AxJEb7orim3wDmzfuk0y7OWNfz7O+YnBVpNhGaMOhh/ErdJVVZq6L+IuijGpawtCG6LPzUEpM6q2j4UMzBD23SWS+yZHlT7q0Jn5wXLW5xCbSw3dbUKWWv/LRgZtwwUzj0TWp2Z7dmJt2FVr5EiYycPSeVKm8T6aGMAuyW8dNos=
+  - secure: fyQvVG5ccLAO7t6mFdhsYTve+uTgMeig86rj7Y1Eye2dY05ptwTcx7nfie0ZWrAHgp/MXh3UYk3GXD08EZhzx+du6DlzWz2Fdc2EjP7B4nvADn3bGLiOypqblxMdZHLVh1wOnWlPm/8sUsjWW7nfPPov6m8XikAjfUDuZuNnP30=
+  - secure: KHoWPkaZTErSKCVizuq4vlznH8I9ex5DaRZMlVVNc847+8MdIa9AqJVoeXH1H65FuBjRFDXAWCdNBDEsQmNbsBkczRqgRlwHAAeLOa9WOgD3StvB/3TxKb2TgLvyuTBJ2ViKx4g+73sztj6VdjJsoUDBK9/Y7MgALrSVGEreulo=
 before_install:
 - pip install --user awscli && export PATH=$PATH:~/.local/bin/
 - if [[ $(uname -s) == 'Linux' ]]; then wget https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+files/libstdc%2B%2B6_4.8.1-2ubuntu1~12.04_amd64.deb
@@ -17,5 +15,3 @@ before_install:
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read
   cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/$(git
   describe --tags --exact-match).template; fi
-script:
-- 'AWS_ACCESS_KEY_ID=$TEST_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$TEST_AWS_SECRET_ACCESS_KEY npm test'
