@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/mapbox/streambot.svg?branch=master)](https://travis-ci.org/mapbox/streambot)
 
-A sibling of Watchbot, focused on using Lambda to consume records from Kinesis.
+Streambot is a toolkit that makes it simple to write Lambda services that process events from Kinesis as node.js modules. It includes both a node-facing API that makes interaction with the stream as simple as a node stream, as well as templates and deploy scripts to help run it as a reliable service.
 
 ## When to use it
 
