@@ -3,11 +3,11 @@
   "version": "0.0.1",
   "description": "example of using streambot",
   "dependencies": {
-    "aws-sdk": "^2.1.23",
-    "mapnik": "^3.2.0",
+    "zipfile": "0.5.7",
     "streambot": "../"
   },
   "devDependencies": {
+    "aws-sdk": "^2.1.23",
     "tape": "^3.5.0"
   },
   "scripts": {

@@ -100,21 +100,7 @@
                 "EventPrefix": {
                     "Ref": "EventPrefix"
                 },
-                "EnvUrl": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "s3://mapbox/envs/",
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "/",
-                            {
-                                "Ref": "GitSha"
-                            }
-                        ]
-                    ]
-                }
+                "EnvUrl": "s3://mapbox/envs/streambot-example/example"
             }
         },
         "StreambotExampleFunction": {

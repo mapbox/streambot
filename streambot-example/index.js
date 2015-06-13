@@ -1,7 +1,8 @@
 var AWS = require('aws-sdk');
 var streambot = require('streambot');
 
-module.exports.streambot = streambot(exampleService);
+exampleEnv = 's3://mapbox/envs/streambot-example/example';
+module.exports.streambot = streambot(exampleService, exampleEnv);
 
 function exampleService(event, callback) {
   var s3 = new AWS.S3();

@@ -1,6 +1,5 @@
 language: node_js
 node_js:
-- '0.10'
 - '0.12'
 sudo: false
 before_install:
@@ -10,6 +9,9 @@ script:
 - ./bin/build
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/${TRAVIS_COMMIT}.zip
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match).template; fi
+- ./bin/bundle ./streambot-example
+- aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox/apps/streambot/${TRAVIS_COMMIT}-example.zip
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match)-example.template; fi
 env:
   global:
   - secure: TZpt40WI5Y24ZoBb85x52GBLh719YXUTTQ9tfBLcKrPlh8QXPGUuwPVBOyTX0XOi5fWtADpAZ59zgDlrLiu1Eus39nidbxano9NdzUaYjvV+8PqfVqNgNjpQZXTIKfFERQVE3ILFR82TaSlsFE8GOleZdVafXzl1eFzinQZNiO0=
