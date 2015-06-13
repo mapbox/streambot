@@ -1,17 +1,14 @@
 language: node_js
 node_js:
+- '0.10'
 - '0.12'
 sudo: false
+script:
+- npm test
+- ./bin/build
+- aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/${TRAVIS_COMMIT}.zip
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match).template; fi
 env:
   global:
-  - secure: fyQvVG5ccLAO7t6mFdhsYTve+uTgMeig86rj7Y1Eye2dY05ptwTcx7nfie0ZWrAHgp/MXh3UYk3GXD08EZhzx+du6DlzWz2Fdc2EjP7B4nvADn3bGLiOypqblxMdZHLVh1wOnWlPm/8sUsjWW7nfPPov6m8XikAjfUDuZuNnP30=
-  - secure: KHoWPkaZTErSKCVizuq4vlznH8I9ex5DaRZMlVVNc847+8MdIa9AqJVoeXH1H65FuBjRFDXAWCdNBDEsQmNbsBkczRqgRlwHAAeLOa9WOgD3StvB/3TxKb2TgLvyuTBJ2ViKx4g+73sztj6VdjJsoUDBK9/Y7MgALrSVGEreulo=
-before_install:
-- pip install --user awscli && export PATH=$PATH:~/.local/bin/
-- if [[ $(uname -s) == 'Linux' ]]; then wget https://launchpad.net/~ubuntu-toolchain-r/+archive/ubuntu/test/+files/libstdc%2B%2B6_4.8.1-2ubuntu1~12.04_amd64.deb
-  && dpkg -x libstdc++6_4.8.1-2ubuntu1~12.04_amd64.deb ./ && export LD_PRELOAD=$(pwd)/usr/lib/x86_64-linux-gnu/libstdc++.so.6;
-  fi
-- aws s3 cp --acl=public-read cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/${TRAVIS_COMMIT}.template
-- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read
-  cloudformation/streambot.template s3://cf-templates-mapbox-us-east-1/streambot/$(git
-  describe --tags --exact-match).template; fi
+  - secure: TZpt40WI5Y24ZoBb85x52GBLh719YXUTTQ9tfBLcKrPlh8QXPGUuwPVBOyTX0XOi5fWtADpAZ59zgDlrLiu1Eus39nidbxano9NdzUaYjvV+8PqfVqNgNjpQZXTIKfFERQVE3ILFR82TaSlsFE8GOleZdVafXzl1eFzinQZNiO0=
+  - secure: WoGKafmLKLpta+v04w8HxN2UApGzbMaLRrLny4O4q73H77f81PztUSEdyYOtXJCf2XnuNFVkGdthJpVPeZRH3+U80PmhHlUKs/LFJQImgZKC3EF6NvmWrxLpYNoisgoJTujeCXpbjMRwc2NYtn4npMI3bAGf2mJm3UkTaJzEVhM=

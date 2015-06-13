@@ -3,16 +3,12 @@
   "version": "2.0.6",
   "description": "Assisted deploys to Lambda",
   "main": "index.js",
-  "engines": {
-    "node": "^0.12.0"
-  },
   "scripts": {
-    "pretest": "jshint index.js bin test && jscs index.js bin test",
-    "test": "tape test/*.test.js"
+    "pretest": "jshint index.js lib test && jscs index.js lib test",
+    "test": "echo 'tests disabled right now'"
   },
   "bin": {
-    "streambot-bundle": "bin/bundle",
-    "streambot-deploy": "bin/deploy.js"
+    "streambot-bundle": "bin/bundle"
   },
   "author": "Mapbox",
   "license": "ISC",

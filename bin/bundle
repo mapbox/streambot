@@ -20,9 +20,6 @@ npm install --production \
   --target_platform=linux \
   --target_arch=x64 > /dev/null 2>&1
 
-# Install all streambot's dependencies
-npm install --production aws-sdk dotenv fastlog minimist queue-async underscore > /dev/null 2>&1
-
 mkdir -p "$1/build"
 zipfile="$1/build/bundle.zip"
 if [ -f "$zipfile" ]; then
@@ -30,7 +27,7 @@ if [ -f "$zipfile" ]; then
 fi
 
 # Make a zip archive
-zip -r -q "$zipfile" . -x *.git* -x ./build* > /dev/null
+zip -r -q "$zipfile" . -x *.git* -x ./build*
 
 # Reinstall your platform's dependencies so you can keep working
 removemodules > /dev/null 2>&1

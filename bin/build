@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+mkdir build
+zipfile=build/streambot.zip
+
+if [ -f "$zipfile" ]; then
+  rm "$zipfile"
+fi
+
+zip -rq "$zipfile" index.js ./lib/connector.js ./lib/env.js
+
+echo "$zipfile"

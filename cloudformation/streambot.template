@@ -1,356 +1,220 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Read and respond to a Kinesis stream using Lambda",
-  "Parameters": {
-    "AlarmEmail": {
-      "Type": "String",
-      "Description": "Email address to receive notifications of errored runs",
-      "Default": "devnull@mapbox.com"
-    },
-    "LogBucket": {
-      "Type": "String",
-      "Description": "Optional: S3 bucket to send logs to",
-      "Default": ""
-    },
-    "LogPrefix": {
-      "Type": "String",
-      "Description": "Optional: S3 prefix to send logs to",
-      "Default": ""
-    },
-    "KinesisStreamArn": {
-      "Type": "String",
-      "Description": "Optional: An existing Kinesis stream to trigger lambda events",
-      "Default": ""
-    },
-    "NumberOfShards": {
-      "Type": "Number",
-      "Description": "Optional: The number of shards to create in the Kinesis stream",
-      "Default": 1
-    }
-  },
-  "Conditions": {
-    "CreateStream": {
-      "Fn::Equals": [
-        {
-          "Ref": "KinesisStreamArn"
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Streambot Lambda functions",
+    "Parameters": {
+        "GitSha": {
+            "Type": "String",
+            "Description": "The GitSha of Streambot to deploy"
         },
-        ""
-      ]
-    },
-    "LogToS3": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            {
-              "Ref": "LogBucket"
-            },
-            ""
-          ]
-        }
-      ]
-    }
-  },
-  "Resources": {
-    "Stream": {
-      "Condition": "CreateStream",
-      "Type" : "AWS::Kinesis::Stream",
-        "Properties" : {
-          "ShardCount" : {
-            "Ref": "NumberOfShards"
-          }
+        "EnvBucket": {
+            "Type": "String",
+            "Description": "S3 Bucket for Lambda runtime environment storage"
+        },
+        "EnvPrefix": {
+            "Type": "String",
+            "Description": "S3 Prefix for Lambda runtime environment storage"
         }
     },
-    "AlarmSNS": {
-      "Type": "AWS::SNS::Topic",
-      "Properties": {
-        "Subscription": [
-          {
-            "Endpoint": { "Ref": "AlarmEmail" },
-            "Protocol": "email"
-          }
-        ]
-      }
-    },
-    "ErrorAlarm": {
-      "Type": "AWS::CloudWatch::Alarm",
-      "Properties": {
-        "ActionsEnabled": "true",
-        "AlarmActions": [
-          { "Ref": "AlarmSNS" }
-        ],
-        "AlarmDescription": "Can be triggered if the lambda function encounters an unexpected error",
-        "ComparisonOperator": "GreaterThanThreshold",
-        "Dimensions": [
-          {
-            "Name": "Status",
-            "Value": "Error"
-          }
-        ],
-        "EvaluationPeriods": 1,
-        "MetricName": {
-          "Ref": "AWS::StackName"
-        },
-        "Namespace": "streambot",
-        "Period": "60",
-        "Statistic": "Sum",
-        "Threshold": "0"
-      }
-    },
-    "ExecutionRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        },
-        "Path": "/lambda/",
-        "Policies": [
-          {
-            "PolicyName": "ExecutionPolicy",
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "cloudwatch:PutMetricData"
-                  ],
-                  "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "kinesis:DescribeStream",
-                    "kinesis:GetRecords",
-                    "kinesis:GetShardIterator",
-                    "kinesis:ListStreams"
-                  ],
-                  "Resource": {
-                    "Fn::If": [
-                      "CreateStream",
-                      {
-                        "Fn::Join": [
-                          "",
-                          [
-                            "arn:aws:kinesis:",
-                            {
-                              "Ref": "AWS::Region"
-                            },
-                            ":",
-                            {
-                              "Ref": "AWS::AccountId"
-                            },
-                            ":stream/",
-                            {
-                              "Ref": "Stream"
-                            }
-                          ]
-                        ]
-                      },
-                      {
-                        "Ref": "KinesisStreamArn"
-                      }
-                    ]
-                  }
-                },
-                {
-                  "Action":[
-                    "logs:CreateLogGroup",
-                    "logs:CreateLogStream",
-                    "logs:PutLogEvents"
-                  ],
-                  "Effect":"Allow",
-                  "Resource":"arn:aws:logs:*:*:*"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "LogPolicy": {
-      "Type": "AWS::IAM::Policy",
-      "Condition": "LogToS3",
-      "Properties": {
-        "PolicyName": "uploadlogs",
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "s3:PutObject"
-              ],
-              "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:aws:s3:::",
-                      {
-                        "Ref": "LogBucket"
-                      },
-                      "/",
-                      {
-                        "Ref": "LogPrefix"
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        "Roles": [
-          {
-            "Ref": "ExecutionRole"
-          }
-        ]
-      }
-    },
-    "ProviderRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "ec2.amazonaws.com"
-                ]
-              },
-              "Action": [
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path": "/kinesis/",
-        "Policies": [
-          {
-            "PolicyName": "ExecutionPolicy",
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "kinesis:*"
-                  ],
-                  "Resource": [
-                    {
-                      "Fn::If": [
-                        "CreateStream",
+    "Resources": {
+        "StreambotEnvRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/streambot/",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
                         {
-                          "Fn::Join": [
-                            "",
-                            [
-                              "arn:aws:kinesis:",
-                              {
-                                "Ref": "AWS::Region"
-                              },
-                              ":",
-                              {
-                                "Ref": "AWS::AccountId"
-                              },
-                              ":stream/",
-                              {
-                                "Ref": "Stream"
-                              }
-                            ]
-                          ]
-                        },
-                        {
-                          "Ref": "KinesisStreamArn"
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
                         }
-                      ]
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "StreambotEnvPolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject",
+                                        "s3:DeleteObject"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "EnvBucket"
+                                            },
+                                            "/",
+                                            {
+                                                "Ref": "EnvPrefix"
+                                            },
+                                            "*"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
                     }
-                  ]
-                }
-              ]
+                ]
             }
-          }
-        ]
-      }
-    }
-  },
-  "Outputs": {
-    "KinesisStream": {
-      "Value": {
-        "Fn::If": [
-          "CreateStream",
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:aws:kinesis:",
-                {
-                  "Ref": "AWS::Region"
+        },
+        "StreambotEnvFunction": {
+            "Type" : "AWS::Lambda::Function",
+            "Properties" : {
+                "Code" : {
+                    "S3Bucket": "mapbox",
+                    "S3Key": {
+                        "Fn::Join": [
+                            "apps/streambot/",
+                            {
+                                "Ref": "GitSha"
+                            },
+                            ".zip"
+                        ]
+                    }
                 },
-                ":",
-                {
-                  "Ref": "AWS::AccountId"
+                "Description" : "Builds runtime environment for Lambda functions",
+                "Handler" : "index.env",
+                "MemorySize" : 128,
+                "Role" : {
+                    "Fn::GetAtt": [
+                        "StreambotEnvRole",
+                        "Arn"
+                    ]
                 },
-                ":stream/",
-                {
-                  "Ref": "Stream"
-                }
-              ]
-            ]
-          },
-          {
-            "Ref": "KinesisStreamArn"
-          }
-        ]
-      }
+                "Runtime" : "nodejs",
+                "Timeout" : 10
+            }
+        },
+        "StreambotConnectorRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/streambot/",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "StreambotConnectorPolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:CreateEventSourceMapping",
+                                        "lambda:GetEventSourceMapping",
+                                        "lambda:UpdateEventSourceMapping",
+                                        "lambda:DeleteEventSourceMapping",
+                                        "lambda:ListEventSourceMappings"
+                                    ],
+                                    "Resource": "arn:aws:lambda:*:*:*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "StreambotConnectorFunction": {
+            "Type" : "AWS::Lambda::Function",
+            "Properties" : {
+                "Code" : {
+                    "S3Bucket": "mapbox",
+                    "S3Key": {
+                        "Fn::Join": [
+                            "apps/streambot/",
+                            {
+                                "Ref": "GitSha"
+                            },
+                            ".zip"
+                        ]
+                    }
+                },
+                "Description" : "Create event source mappings between streams and Lambda functions",
+                "Handler" : "index.connector",
+                "MemorySize" : 128,
+                "Role" : {
+                    "Fn::GetAtt": [
+                        "StreambotConnectorRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime" : "nodejs",
+                "Timeout" : 10
+            }
+        }
     },
-    "LambdaExecutionRole": {
-      "Value": {
-        "Fn::GetAtt" : [
-          "ExecutionRole",
-          "Arn"
-        ]
-      }
-    },
-    "LambdaExecutionRoleName": {
-      "Value": {
-        "Ref": "ExecutionRole"
-      }
-    },
-    "KinesisAdminRole": {
-      "Value": {
-        "Fn::GetAtt": [
-          "ProviderRole",
-          "Arn"
-        ]
-      }
-    },
-    "MetricName": {
-      "Value": {
-        "Ref": "AWS::StackName"
-      }
-    },
-    "LogBucket": {
-      "Value": {
-        "Ref": "LogBucket"
-      }
-    },
-    "LogPrefix": {
-      "Value": {
-        "Ref": "LogPrefix"
-      }
-    },
-    "StackRegion": {
-      "Value": {
-        "Ref": "AWS::Region"
-      }
+    "Outputs": {
+        "StreambotEnvFunctionName": {
+            "Value": {
+                "Ref": "StreambotEnvFunction"
+            }
+        },
+        "StreambotEnvFunctionArn": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "StreambotEnvFunction",
+                    "Arn"
+                ]
+            }
+        },
+        "StreambotConnectorFunctionName": {
+            "Value": {
+                "Ref": "StreambotConnectorFunction"
+            }
+        },
+        "StreambotConnectorFunctionArn": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "StreambotConnectorFunction",
+                    "Arn"
+                ]
+            }
+        },
+        "ValidEnvUrl": {
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    "arn:aws:s3:::",
+                    {
+                        "Ref": "EnvBucket"
+                    },
+                    "/",
+                    {
+                        "Ref": "EnvPrefix"
+                    },
+                    "*"
+                ]
+            }
+        }
     }
-  }
 }
