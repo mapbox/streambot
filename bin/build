@@ -9,6 +9,6 @@ if [ -f "$zipfile" ]; then
   rm "$zipfile"
 fi
 
-zip -rq "$zipfile" index.js ./lib/connector.js ./lib/env.js
+zip -rq "$zipfile" index.js
 
 echo "$zipfile"

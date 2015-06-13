@@ -4,7 +4,7 @@
   "description": "Assisted deploys to Lambda",
   "main": "index.js",
   "scripts": {
-    "pretest": "jshint index.js lib test && jscs index.js lib test",
+    "pretest": "jshint index.js test && jscs index.js test",
     "test": "echo 'tests disabled right now'"
   },
   "bin": {
