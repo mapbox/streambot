@@ -52,16 +52,17 @@
                                     ],
                                     "Resource": {
                                         "Fn::Join": [
-                                            "",
-                                            "arn:aws:s3:::",
-                                            {
-                                                "Ref": "EnvBucket"
-                                            },
-                                            "/",
-                                            {
-                                                "Ref": "EnvPrefix"
-                                            },
-                                            "*"
+                                            "", [
+                                                "arn:aws:s3:::",
+                                                {
+                                                    "Ref": "EnvBucket"
+                                                },
+                                                "/",
+                                                {
+                                                    "Ref": "EnvPrefix"
+                                                },
+                                                "*"
+                                            ]
                                         ]
                                     }
                                 }
@@ -78,11 +79,14 @@
                     "S3Bucket": "mapbox",
                     "S3Key": {
                         "Fn::Join": [
-                            "apps/streambot/",
-                            {
-                                "Ref": "GitSha"
-                            },
-                            ".zip"
+                            "",
+                            [
+                                "apps/streambot/",
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                ".zip"
+                            ]
                         ]
                     }
                 },
@@ -151,11 +155,14 @@
                     "S3Bucket": "mapbox",
                     "S3Key": {
                         "Fn::Join": [
-                            "apps/streambot/",
-                            {
-                                "Ref": "GitSha"
-                            },
-                            ".zip"
+                            "",
+                            [
+                                "apps/streambot/",
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                ".zip"
+                            ]
                         ]
                     }
                 },
@@ -203,16 +210,17 @@
         "ValidEnvUrl": {
             "Value": {
                 "Fn::Join": [
-                    "",
-                    "arn:aws:s3:::",
-                    {
-                        "Ref": "EnvBucket"
-                    },
-                    "/",
-                    {
-                        "Ref": "EnvPrefix"
-                    },
-                    "*"
+                    "", [
+                        "arn:aws:s3:::",
+                        {
+                            "Ref": "EnvBucket"
+                        },
+                        "/",
+                        {
+                            "Ref": "EnvPrefix"
+                        },
+                        "*"
+                    ]
                 ]
             }
         }
