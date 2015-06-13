@@ -1,52 +1,181 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "A simple streambot example",
-  "Resources": {
-    "StreambotStack": {
-      "Type": "AWS::CloudFormation::Stack",
-      "Properties": {
-        "TemplateURL": "https://cf-templates-mapbox-us-east-1.s3.amazonaws.com/streambot/testing.template",
-        "Parameters": {
-          "AlarmEmail": "my-email@domain.com",
-          "LogBucket": "mapbox-sandbox",
-          "LogPrefix": "streambot-test"
-        }
-      }
-    },
-    "LambdaPolicy": {
-      "Type": "AWS::IAM::Policy",
-      "DependsOn": "StreambotStack",
-      "Properties": {
-        "PolicyName": "uploadrecords",
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "s3:PutObject"
-              ],
-              "Effect": "Allow",
-              "Resource": [
-                "arn:aws:s3:::mapbox/example-records/*"
-              ]
-            }
-          ]
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "A simple streambot example",
+    "Parameters": {
+        "GitSha": {
+            "Type": "String",
+            "Description": "The Streambot GitSha to which this example pertains"
         },
-        "Roles": [
-          {
-            "Fn::GetAtt": [
-              "StreambotStack",
-              "Outputs.LambdaExecutionRoleName"
-            ]
-          }
-        ]
-      }
+        "EventBucket": {
+            "Type": "String",
+            "Description": "The S3 bucket where events will be written",
+        },
+        "EventPrefix": {
+            "Type": "String",
+            "Description": "The S3 prefix where events will be written"
+        }
+    },
+    "Resources": {
+        "StreambotExampleStream": {
+            "Type": "AWS::Kinesis::Stream",
+            "Properties": {
+                "ShardCount": 1
+            }
+        },
+        "StreambotExampleRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/streambot/",
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "StreambotExamplePolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "s3:PutObject",
+                                        "s3:PutObjectAcl"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:s3:::",
+                                                {
+                                                    "Ref": "EventBucket"
+                                                },
+                                                "/",
+                                                {
+                                                    "Ref": "EventPrefix"
+                                                },
+                                                "*"
+                                            ]
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "StreambotExampleConfiguration": {
+            "Type": "Custom::StreambotEnv",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:lambda:us-east-1:",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":function:streambot-testing-StreambotEnvFunction-IT1DG2DHET2Q"
+                        ]
+                    ]
+                },
+                "EventBucket": {
+                    "Ref": "EventBucket"
+                },
+                "EventPrefix": {
+                    "Ref": "EventPrefix"
+                },
+                "EnvUrl": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "s3://mapbox/envs/",
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "/",
+                            {
+                                "Ref": "GitSha"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "StreambotExampleFunction": {
+            "Type" : "AWS::Lambda::Function",
+            "DependsOn": "StreambotExampleConfiguration",
+            "Properties" : {
+                "Code" : {
+                    "S3Bucket": "mapbox",
+                    "S3Key": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "apps/streambot/",
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                "-example.zip"
+                            ]
+                        ]
+                    }
+                },
+                "Description" : "Streambot example function",
+                "Handler" : "index.streambot",
+                "MemorySize" : 128,
+                "Role" : {
+                    "Fn::GetAtt": [
+                        "StreambotExampleRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime" : "nodejs",
+                "Timeout" : 10
+            }
+        },
+        "StreambotExampleConnector": {
+            "Type": "Custom::StreambotConnector",
+            "Properties": {
+                "ServiceToken": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:lambda:us-east-1:",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":function:streambot-testing-StreambotConnectorFunction-1T6WOHW28O6EJ"
+                        ]
+                    ]
+                },
+                "FunctionRegion": {
+                    "Ref": "AWS::Region"
+                },
+                "FunctionName": {
+                    "Ref": "StreambotExampleFunction"
+                },
+                "StreamArn": {
+                    "Ref": "StreambotExampleStream"
+                },
+                "BatchSize": 1,
+                "StartingPosition": "LATEST"
+            }
+        }
     }
-  },
-  "Outputs": {
-    "StreambotStack": {
-      "Value": {
-        "Ref": "StreambotStack"
-      }
-    }
-  }
 }

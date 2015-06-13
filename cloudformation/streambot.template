@@ -210,8 +210,9 @@
         "ValidEnvUrl": {
             "Value": {
                 "Fn::Join": [
-                    "", [
-                        "arn:aws:s3:::",
+                    "",
+                    [
+                        "s3://",
                         {
                             "Ref": "EnvBucket"
                         },
