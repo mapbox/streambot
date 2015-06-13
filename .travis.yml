@@ -3,6 +3,8 @@ node_js:
 - '0.10'
 - '0.12'
 sudo: false
+before_install:
+- pip install --user awscli && export PATH=$PATH:~/.local/bin/
 script:
 - npm test
 - ./bin/build

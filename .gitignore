@@ -2,3 +2,4 @@ streambot-example/streambot.js
 streambot-example/.env
 streambot-example/node_modules/
 streambot-example/build/
+build/
