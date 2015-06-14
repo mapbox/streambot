@@ -9,11 +9,5 @@
   "devDependencies": {
     "aws-sdk": "^2.1.23",
     "tape": "^3.5.0"
-  },
-  "scripts": {
-    "deploy": "streambot-deploy"
-  },
-  "config": {
-    "streambot": "index.js"
   }
 }
