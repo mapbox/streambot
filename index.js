@@ -14,6 +14,7 @@ function streambot(service, envUrl) {
     if (!envUrl) return service(event, callback);
 
     envUrl = url.parse(envUrl);
+    console.log('Load environment from %s', envUrl);
 
     s3.getObject({
       Bucket: envUrl.hostname,
@@ -170,6 +171,7 @@ function manageConnector(event, context) {
     EventSourceArn: event.ResourceProperties.StreamArn,
     FunctionName: event.ResourceProperties.FunctionName
   }, function(err, data) {
+    if (err && event.RequestType === 'Delete') return respond(null, null, event, context);
     if (err) return respond(err, null, event, context);
 
     var existingUUID = data.EventSourceMappings.length ?
@@ -201,7 +203,7 @@ function manageConnector(event, context) {
     // Create or update the mapping
     var action = existingUUID ? 'updateEventSourceMapping' : 'createEventSourceMapping';
     lambda[action](params, function(err, data) {
-      respond(err, { UUID: data.UUID }, event, context);
+      respond(err, data ? { UUID: data.UUID } : null, event, context);
     });
   });
 }

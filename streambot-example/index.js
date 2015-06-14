@@ -15,7 +15,7 @@ function exampleService(event, callback) {
   function uploadRecord(record) {
     s3.putObject({
       Bucket: process.env.EventBucket,
-      Key: process.env.EventPrefix + '/' + record.sequenceNumber,
+      Key: process.env.EventPrefix + '/' + record.kinesis.sequenceNumber,
       Body: new Buffer(record.kinesis.data, 'base64')
     }, function(err) {
       if (err) return callback(err);

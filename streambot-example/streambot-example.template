@@ -8,7 +8,7 @@
         },
         "EventBucket": {
             "Type": "String",
-            "Description": "The S3 bucket where events will be written",
+            "Description": "The S3 bucket where events will be written"
         },
         "EventPrefix": {
             "Type": "String",
@@ -53,6 +53,13 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
+                                        "s3:GetObject"
+                                    ],
+                                    "Resource": "arn:aws:s3:::mapbox/envs/streambot-example/example"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
                                         "s3:PutObject",
                                         "s3:PutObjectAcl"
                                     ],
@@ -69,6 +76,34 @@
                                                     "Ref": "EventPrefix"
                                                 },
                                                 "*"
+                                            ]
+                                        ]
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "kinesis:GetRecords",
+                                        "kinesis:GetShardIterator",
+                                        "kinesis:DescribeStream",
+                                        "kinesis:ListStreams"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:kinesis:",
+                                                {
+                                                    "Ref": "AWS::Region"
+                                                },
+                                                ":",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":stream/",
+                                                {
+                                                    "Ref": "StreambotExampleStream"
+                                                }
                                             ]
                                         ]
                                     }
@@ -157,7 +192,23 @@
                     "Ref": "StreambotExampleFunction"
                 },
                 "StreamArn": {
-                    "Ref": "StreambotExampleStream"
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:kinesis:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":stream/",
+                            {
+                                "Ref": "StreambotExampleStream"
+                            }
+                        ]
+                    ]
                 },
                 "BatchSize": 1,
                 "StartingPosition": "LATEST"

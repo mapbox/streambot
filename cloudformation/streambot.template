@@ -140,7 +140,7 @@
                                         "lambda:DeleteEventSourceMapping",
                                         "lambda:ListEventSourceMappings"
                                     ],
-                                    "Resource": "arn:aws:lambda:*:*:*"
+                                    "Resource": "*"
                                 }
                             ]
                         }
