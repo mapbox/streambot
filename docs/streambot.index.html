@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Streambot</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="streambot">Streambot</h1>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> url = <span class="hljs-built_in">require</span>(<span class="hljs-string">'url'</span>);
+<span class="hljs-keyword">var</span> https = <span class="hljs-built_in">require</span>(<span class="hljs-string">'https'</span>);
+<span class="hljs-keyword">var</span> AWS = <span class="hljs-built_in">require</span>(<span class="hljs-string">'aws-sdk'</span>);
+<span class="hljs-keyword">var</span> s3 = <span class="hljs-keyword">new</span> AWS.S3();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="exports">Exports</h2>
+<ul>
+<li><code>require(&#39;streambot&#39;)</code> provides a function for you to wrap your own Lambd function with.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports = streambot;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <ul>
+<li><code>require(&#39;streambot&#39;).env</code> provides a function to write configuration to files on S3</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports.env = manageEnv;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <ul>
+<li><code>require(&#39;streambot&#39;).connector</code> provides a function to manage event source mappings</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports.connector = manageConnector;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h2 id="streambot-wrapper">Streambot wrapper</h2>
+<p>Pass the function you want to run on Lambda, and optionally the location where you’ve stored environment configuration on S3.
+This loads the configuration from your S3 file into environment variables which will be accessible to your function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">streambot</span>(<span class="hljs-params">service, envUrl</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>A function is returned which is <em>what Lambda will actually execute</em>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">streambot</span>(<span class="hljs-params">event, context</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Provides the <code>context.done</code> function as a familiar Node.js-style callback function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> callback = context.done.bind(context);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>If there was no configuration file provided, simply call the caller-provided function, passing the event and the callback.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> (!envUrl) <span class="hljs-keyword">return</span> service(event, callback);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Otherwise, load environment from S3.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    envUrl = url.parse(envUrl);
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Load environment from %s'</span>, envUrl);
+
+    s3.getObject({
+      Bucket: envUrl.hostname,
+      Key: envUrl.pathname.slice(<span class="hljs-number">1</span>)
+    }, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>If the configuration file does not exist, the Lambda execution <strong>will not</strong> be retried.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">return</span> callback(err);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>Read the configuration file and set key-value pairs as environment variables.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">var</span> env = <span class="hljs-built_in">JSON</span>.parse(data.Body);
+      <span class="hljs-built_in">Object</span>.keys(env).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">key</span>) </span>{
+        process.env[key] = env[key];
+      });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Run the caller-provided function with the environment properly configured.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      service(event, callback);
+    });
+  };
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <h2 id="validate-events">Validate Events</h2>
+<p>Helper function confirms that an event is a <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-requests.html">CloudFormation event</a>.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isCloudFormationEvent</span>(<span class="hljs-params">event</span>) </span>{
+  <span class="hljs-keyword">var</span> required = [
+    <span class="hljs-string">'RequestType'</span>,
+    <span class="hljs-string">'ResourceProperties'</span>,
+    <span class="hljs-string">'StackId'</span>,
+    <span class="hljs-string">'LogicalResourceId'</span>,
+    <span class="hljs-string">'RequestId'</span>,
+    <span class="hljs-string">'ResponseURL'</span>
+  ];
+
+  <span class="hljs-keyword">return</span> required.reduce(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">valid, key</span>) </span>{
+    <span class="hljs-keyword">if</span> (!(key <span class="hljs-keyword">in</span> event)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">return</span> key;
+  }, <span class="hljs-literal">true</span>);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2 id="respond">respond</h2>
+<p>Helper function for responding to a Lambda invocation triggered by a custom CloudFormation resource.
+The function will be passed a signed S3 URL, and the custom resource will wait for a file to be PUT there, indicating if the resource successfully completed or not.
+Parameters:</p>
+<ul>
+<li>err: an Error object indicating that a failure occurred</li>
+<li>data: key-value pairs to make accessible via <code>Fn::GetAtt</code> in the CloudFormation template defining the resource</li>
+<li>event: the event that triggered Lambda invocation</li>
+<li>context: the context provided by the Lambda invocation</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">respond</span>(<span class="hljs-params">err, data, event, context</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>Status is determined simply by the presence or absence of an <code>err</code> object.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (err) <span class="hljs-built_in">console</span>.log(err);
+  <span class="hljs-keyword">var</span> status = err ? <span class="hljs-string">'FAILED'</span> : <span class="hljs-string">'SUCCESS'</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Build the required response. See <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-responses.html">the AWS documentation</a> for more information.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> body = <span class="hljs-built_in">JSON</span>.stringify({
+    Status: status,
+    Reason: err ? err.message : <span class="hljs-string">''</span>,
+    PhysicalResourceId: event.PhysicalResourceId || context.logStreamName,
+    StackId: event.StackId,
+    LogicalResourceId: event.LogicalResourceId,
+    RequestId: event.RequestId,
+    Data: data
+  });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Build request options to send the response to the provided S3 URL.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> parsedUrl = url.parse(event.ResponseURL);
+  <span class="hljs-keyword">var</span> options = {
+    hostname: parsedUrl.hostname,
+    port: <span class="hljs-number">443</span>,
+    path: parsedUrl.path,
+    method: <span class="hljs-string">'PUT'</span>,
+    headers: {
+      <span class="hljs-string">'content-type'</span>: <span class="hljs-string">''</span>,
+      <span class="hljs-string">'content-length'</span>: body.length
+    }
+  };
+
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Send response to: %j'</span>, options);
+  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Response body: %s'</span>, body);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Send the response, log the result, and retry 5 times on error before giving up.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  (<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">sendResponse</span>(<span class="hljs-params">attempts</span>) </span>{
+    <span class="hljs-keyword">if</span> (attempts &gt; <span class="hljs-number">5</span>) <span class="hljs-keyword">return</span> context.done(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Failed to respond to CloudFormation'</span>));
+
+    <span class="hljs-keyword">var</span> req = https.request(options, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">res</span>) </span>{
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Response status: '</span> + res.statusCode);
+      <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'Response headers: '</span> + <span class="hljs-built_in">JSON</span>.stringify(res.headers));
+      context.done(<span class="hljs-literal">null</span>, err || body);
+    }).on(<span class="hljs-string">'error'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-built_in">console</span>.log(err);
+      attempts++;
+      sendResponse(attempts);
+    });
+
+    req.write(body);
+    req.end();
+  })(<span class="hljs-number">0</span>);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h2 id="manage-configuration-files">Manage configuration files</h2>
+<p>This function writes configuration files to S3.
+It expects to be invoked by a custom CloudFormation resource.
+This resource <strong>must</strong> provide an <code>EnvUrl</code>, where the file will be written.
+Any other properties provided to the custom CloudFormation resource will become key-value pairs in the configuration file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">manageEnv</span>(<span class="hljs-params">event, context</span>) </span>{
+  <span class="hljs-keyword">if</span> (!isCloudFormationEvent(event))
+    <span class="hljs-keyword">return</span> context.done(<span class="hljs-literal">null</span>, <span class="hljs-string">'ERROR: Invalid CloudFormation event'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Check that the custom CloudFormation resource was given the required properties.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (!event.ResourceProperties.EnvUrl)
+    <span class="hljs-keyword">return</span> respond(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid StreambotEnv parameters'</span>), <span class="hljs-literal">null</span>, event, context);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Log information about what we’re doing.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'%s config for %s'</span>, event.RequestType, event.StackId);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>Determine where to put the configuration file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> parsedUrl = url.parse(event.ResourceProperties.EnvUrl);
+  <span class="hljs-keyword">var</span> s3Params = {
+    Bucket: parsedUrl.hostname,
+    Key: parsedUrl.pathname.slice(<span class="hljs-number">1</span>)
+  };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>The custom CloudFormation resource is being deleted. Remove the config file from S3.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (event.RequestType === <span class="hljs-string">'Delete'</span>) <span class="hljs-keyword">return</span> s3.deleteObject(s3Params, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+    respond(err, <span class="hljs-literal">null</span>, event, context);
+  });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>The custom CloudFormation resource is being created or updated. PUT the config to S3.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> env = <span class="hljs-built_in">Object</span>.keys(event.ResourceProperties).reduce(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">env, key</span>) </span>{
+    <span class="hljs-keyword">if</span> (key !== <span class="hljs-string">'ServiceToken'</span> &amp;&amp; key !== <span class="hljs-string">'EnvUrl'</span>)
+      env[key] = event.ResourceProperties[key];
+    <span class="hljs-keyword">return</span> env;
+  }, {});
+
+  s3Params.Body = <span class="hljs-built_in">JSON</span>.stringify(env);
+  s3.putObject(s3Params, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+    respond(err, { EnvUrl: event.ResourceProperties.EnvUrl }, event, context);
+  });
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <h2 id="manage-event-source-mappings">Manage event source mappings</h2>
+<p>This function writes event source mappings between Kinesis/DynamoDB streams and Lambda functions.
+It expects to be invoked by a custom CloudFormation resource.
+This resource <strong>must</strong> provide:</p>
+<ul>
+<li>FunctionRegion: the AWS region containing the Lambda function</li>
+<li>FunctionName: the name of the Lambda function</li>
+<li>StreamArn: the ARN for the stream</li>
+</ul>
+<p>Other properties that <strong>may be</strong> provided:</p>
+<ul>
+<li>BatchSize [100]: the maximum number of stream records to process in a single Lambda invocation</li>
+<li>StartingPosition [TRIM_HORIZON]: the stream iterator type</li>
+<li>Enabled [true]: whether or not the event source mapping is active</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">manageConnector</span>(<span class="hljs-params">event, context</span>) </span>{
+  <span class="hljs-keyword">if</span> (!isCloudFormationEvent(event))
+    <span class="hljs-keyword">return</span> context.done(<span class="hljs-literal">null</span>, <span class="hljs-string">'ERROR: Invalid CloudFormation event'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Check that the custom CloudFormation resource was given the right properties.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> requiredProperties = [
+    <span class="hljs-string">'FunctionRegion'</span>,
+    <span class="hljs-string">'FunctionName'</span>,
+    <span class="hljs-string">'StreamArn'</span>
+  ];
+
+  <span class="hljs-keyword">var</span> valid = requiredProperties.reduce(<span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">valid, key</span>) </span>{
+    <span class="hljs-keyword">if</span> (!(key <span class="hljs-keyword">in</span> event.ResourceProperties)) <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+    <span class="hljs-keyword">return</span> key;
+  }, <span class="hljs-literal">true</span>);
+
+  <span class="hljs-keyword">if</span> (!valid)
+    <span class="hljs-keyword">return</span> respond(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Invalid StreambotConnector parameters'</span>), <span class="hljs-literal">null</span>, event, context);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Log information about what we’re doing.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-built_in">console</span>.log(
+    <span class="hljs-string">'%s eventSourceMapping for %s: %s - %s'</span>,
+    event.RequestType,
+    event.StackId,
+    event.ResourceProperties.StreamArn,
+    event.ResourceProperties.FunctionName
+  );</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Check for an existing mapping between this stream - function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">var</span> lambda = <span class="hljs-keyword">new</span> AWS.Lambda({ region: event.ResourceProperties.FunctionRegion });
+  lambda.listEventSourceMappings({
+    EventSourceArn: event.ResourceProperties.StreamArn,
+    FunctionName: event.ResourceProperties.FunctionName
+  }, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>The custom CloudFormation resource may have been misconfigured at create/update time (e.g. invalid Stream ARN value).
+In this case a <code>Delete</code> on this custom resource must succeed, even if the create or update failed in the first place.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> (err &amp;&amp; event.RequestType === <span class="hljs-string">'Delete'</span>) <span class="hljs-keyword">return</span> respond(<span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, event, context);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>If there is an error during a create/update, mark the action as a failure.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">return</span> respond(err, <span class="hljs-literal">null</span>, event, context);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Determine if this mapping already exists.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> existingUUID = data.EventSourceMappings.length ?
+      data.EventSourceMappings[<span class="hljs-number">0</span>].UUID : <span class="hljs-literal">null</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Perform a delete if an existing mapping was found.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> (event.RequestType === <span class="hljs-string">'Delete'</span>) {
+      <span class="hljs-keyword">if</span> (!existingUUID) <span class="hljs-keyword">return</span> respond(<span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, event, context);
+      <span class="hljs-keyword">return</span> lambda.deleteEventSourceMapping({ UUID: existingUUID }, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err</span>) </span>{
+        respond(err, <span class="hljs-literal">null</span>, event, context);
+      });
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>Build event source mapping request parameters.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> params = {
+      FunctionName: event.ResourceProperties.FunctionName,
+      BatchSize: event.ResourceProperties.BatchSize || <span class="hljs-number">100</span>,
+      Enabled: event.ResourceProperties.hasOwnProperty(<span class="hljs-string">'Enabled'</span>) ?
+        event.ResourceProperties.Enabled : <span class="hljs-literal">true</span>
+    };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Account for differences between creating and updating an event source mapping.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> (existingUUID) {
+      params.UUID = existingUUID;
+    } <span class="hljs-keyword">else</span> {
+      params.StartingPosition = event.ResourceProperties.StartingPosition || <span class="hljs-string">'TRIM_HORIZON'</span>;
+      params.EventSourceArn = event.ResourceProperties.StreamArn;
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>Create or update the mapping.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">var</span> action = existingUUID ? <span class="hljs-string">'updateEventSourceMapping'</span> : <span class="hljs-string">'createEventSourceMapping'</span>;
+    lambda[action](params, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">err, data</span>) </span>{
+      respond(err, data ? { UUID: data.UUID } : <span class="hljs-literal">null</span>, event, context);
+    });
+  });
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

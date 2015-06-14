@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>Primary Streambot template</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="primary-streambot-template">Primary Streambot template</h1>
+<p>In order to use Streambot, you must “install” it by running one instance of this template in your AWS account.
+This creates two Lambda function which your own custom stacks can all on via custom CloudFormation resources.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>{
+    <span class="hljs-string">"AWSTemplateFormatVersion"</span>: <span class="hljs-string">"2010-09-09"</span>,
+    <span class="hljs-string">"Description"</span>: <span class="hljs-string">"Streambot Lambda functions"</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="parameters">Parameters</h2>
+<p>You must provide Streambot with three configuration parameters. Be conscious that the choice of <code>EnvBucket</code> and <code>EnvPrefix</code> that you choose here will determine where configuration files can be stored for any of your Lambda-backed services.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-string">"Parameters"</span>: {
+        <span class="hljs-string">"GitSha"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
+            <span class="hljs-string">"Description"</span>: <span class="hljs-string">"The GitSha of Streambot to deploy"</span>
+        },
+        <span class="hljs-string">"EnvBucket"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
+            <span class="hljs-string">"Description"</span>: <span class="hljs-string">"S3 Bucket for Lambda runtime environment storage"</span>
+        },
+        <span class="hljs-string">"EnvPrefix"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
+            <span class="hljs-string">"Description"</span>: <span class="hljs-string">"S3 Prefix for Lambda runtime environment storage"</span>
+        }
+    },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <h2 id="resources">Resources</h2>
+<p>The stack creates two Lambda functions, and two IAM roles for those Lambda functions to assume</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-string">"Resources"</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <h3 id="environment-configuration-role">Environment configuration role</h3>
+<p>This role is assumed but the StreambotEnv function</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvRole"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::IAM::Role"</span>,
+            <span class="hljs-string">"Properties"</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h4 id="assume-role-policy">Assume role policy</h4>
+<p>Identifies that this role can be assumed by a Lambda function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Path"</span>: <span class="hljs-string">"/streambot/"</span>,
+                <span class="hljs-string">"AssumeRolePolicyDocument"</span>: {
+                    <span class="hljs-string">"Statement"</span>: [
+                        {
+                            <span class="hljs-string">"Sid"</span>: <span class="hljs-string">""</span>,
+                            <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                            <span class="hljs-string">"Principal"</span>: {
+                                <span class="hljs-string">"Service"</span>: <span class="hljs-string">"lambda.amazonaws.com"</span>
+                            },
+                            <span class="hljs-string">"Action"</span>: <span class="hljs-string">"sts:AssumeRole"</span>
+                        }
+                    ]
+                },
+                <span class="hljs-string">"Policies"</span>: [
+                    {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h4 id="runtime-policy">Runtime policy</h4>
+<p>Defines the permissions that the Lambda function will have once it has assumed this role.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-string">"PolicyName"</span>: <span class="hljs-string">"StreambotEnvPolicy"</span>,
+                        <span class="hljs-string">"PolicyDocument"</span>: {
+                            <span class="hljs-string">"Statement"</span>: [</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <ul>
+<li>The Lambda function must be able to write CloudWatch logs.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                {
+                                    <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                                    <span class="hljs-string">"Action"</span>: [
+                                        <span class="hljs-string">"logs:*"</span>
+                                    ],
+                                    <span class="hljs-string">"Resource"</span>: <span class="hljs-string">"arn:aws:logs:*:*:*"</span>
+                                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <ul>
+<li>The Lambda function must be able to write configuration files to the S3 bucket/prefix of your choosing. <em>Note</em>: all of your Lambda-backed services must explicitly write configuration files to this S3 bucket/prefix.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                {
+                                    <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                                    <span class="hljs-string">"Action"</span>: [
+                                        <span class="hljs-string">"s3:PutObject"</span>,
+                                        <span class="hljs-string">"s3:DeleteObject"</span>
+                                    ],
+                                    <span class="hljs-string">"Resource"</span>: {
+                                        <span class="hljs-string">"Fn::Join"</span>: [
+                                            <span class="hljs-string">""</span>, [
+                                                <span class="hljs-string">"arn:aws:s3:::"</span>,
+                                                {
+                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvBucket"</span>
+                                                },
+                                                <span class="hljs-string">"/"</span>,
+                                                {
+                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvPrefix"</span>
+                                                },
+                                                <span class="hljs-string">"*"</span>
+                                            ]
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <h3 id="streambotenv">StreambotEnv</h3>
+<p>This function is intended to be run by a custom CloudFormation resource, and it is used to write a configuration file to S3</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvFunction"</span>: {
+            <span class="hljs-string">"Type"</span> : <span class="hljs-string">"AWS::Lambda::Function"</span>,
+            <span class="hljs-string">"Properties"</span> : {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <ul>
+<li>Code: The location of Streambot’s code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a <code>.zip</code> file containing Streambot’s <code>index.js</code> file.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Code"</span> : {
+                    <span class="hljs-string">"S3Bucket"</span>: <span class="hljs-string">"mapbox"</span>,
+                    <span class="hljs-string">"S3Key"</span>: {
+                        <span class="hljs-string">"Fn::Join"</span>: [
+                            <span class="hljs-string">""</span>,
+                            [
+                                <span class="hljs-string">"apps/streambot/"</span>,
+                                {
+                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"GitSha"</span>
+                                },
+                                <span class="hljs-string">".zip"</span>
+                            ]
+                        ]
+                    }
+                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <ul>
+<li>Handler: Identifies which function from Streambot’s <code>index.js</code> this Lambda function should execute. This should always be set to <code>index.env</code>.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Handler"</span> : <span class="hljs-string">"index.env"</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <ul>
+<li>Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Role"</span> : {
+                    <span class="hljs-string">"Fn::GetAtt"</span>: [
+                        <span class="hljs-string">"StreambotEnvRole"</span>,
+                        <span class="hljs-string">"Arn"</span>
+                    ]
+                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <ul>
+<li>Other properties as outlined in the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Runtime"</span> : <span class="hljs-string">"nodejs"</span>,
+                <span class="hljs-string">"Description"</span> : <span class="hljs-string">"Builds runtime environment for Lambda functions"</span>,
+                <span class="hljs-string">"MemorySize"</span> : <span class="hljs-number">128</span>,
+                <span class="hljs-string">"Timeout"</span> : <span class="hljs-number">10</span>
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h3 id="environment-configuration-role">Environment configuration role</h3>
+<p>This role is assumed but the StreambotConnector function</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotConnectorRole"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::IAM::Role"</span>,
+            <span class="hljs-string">"Properties"</span>: {
+                <span class="hljs-string">"Path"</span>: <span class="hljs-string">"/streambot/"</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <h4 id="assume-role-policy">Assume role policy</h4>
+<p>Identifies that this role can be assumed by a Lambda function.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"AssumeRolePolicyDocument"</span>: {
+                    <span class="hljs-string">"Statement"</span>: [
+                        {
+                            <span class="hljs-string">"Sid"</span>: <span class="hljs-string">""</span>,
+                            <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                            <span class="hljs-string">"Principal"</span>: {
+                                <span class="hljs-string">"Service"</span>: <span class="hljs-string">"lambda.amazonaws.com"</span>
+                            },
+                            <span class="hljs-string">"Action"</span>: <span class="hljs-string">"sts:AssumeRole"</span>
+                        }
+                    ]
+                },
+                <span class="hljs-string">"Policies"</span>: [
+                    {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <h4 id="runtime-policy">Runtime policy</h4>
+<p>Defines the permissions that the Lambda function will have once it has assumed this role.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                        <span class="hljs-string">"PolicyName"</span>: <span class="hljs-string">"StreambotConnectorPolicy"</span>,
+                        <span class="hljs-string">"PolicyDocument"</span>: {
+                            <span class="hljs-string">"Statement"</span>: [</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <ul>
+<li>The Lambda function must be able to write CloudWatch logs.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                {
+                                    <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                                    <span class="hljs-string">"Action"</span>: [
+                                        <span class="hljs-string">"logs:*"</span>
+                                    ],
+                                    <span class="hljs-string">"Resource"</span>: <span class="hljs-string">"arn:aws:logs:*:*:*"</span>
+                                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <ul>
+<li>The Lambda function must be allowed to manage event source mappings.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                                {
+                                    <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
+                                    <span class="hljs-string">"Action"</span>: [
+                                        <span class="hljs-string">"lambda:CreateEventSourceMapping"</span>,
+                                        <span class="hljs-string">"lambda:GetEventSourceMapping"</span>,
+                                        <span class="hljs-string">"lambda:UpdateEventSourceMapping"</span>,
+                                        <span class="hljs-string">"lambda:DeleteEventSourceMapping"</span>,
+                                        <span class="hljs-string">"lambda:ListEventSourceMappings"</span>
+                                    ],
+                                    <span class="hljs-string">"Resource"</span>: <span class="hljs-string">"*"</span>
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h3 id="streambotconnector">StreambotConnector</h3>
+<p>This function is intended to be run by a custom CloudFormation resource, and it is used to manage event source mappings between Kinesis/DynamoDB streams and Lambda functions.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotConnectorFunction"</span>: {
+            <span class="hljs-string">"Type"</span> : <span class="hljs-string">"AWS::Lambda::Function"</span>,
+            <span class="hljs-string">"Properties"</span> : {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <ul>
+<li>Code: The location of Streambot’s code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a <code>.zip</code> file containing Streambot’s <code>index.js</code> file.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Code"</span> : {
+                    <span class="hljs-string">"S3Bucket"</span>: <span class="hljs-string">"mapbox"</span>,
+                    <span class="hljs-string">"S3Key"</span>: {
+                        <span class="hljs-string">"Fn::Join"</span>: [
+                            <span class="hljs-string">""</span>,
+                            [
+                                <span class="hljs-string">"apps/streambot/"</span>,
+                                {
+                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"GitSha"</span>
+                                },
+                                <span class="hljs-string">".zip"</span>
+                            ]
+                        ]
+                    }
+                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <ul>
+<li>Handler: Identifies which function from Streambot’s <code>index.js</code> this Lambda function should execute. This should always be set to <code>index.env</code>.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Handler"</span> : <span class="hljs-string">"index.connector"</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <ul>
+<li>Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Role"</span> : {
+                    <span class="hljs-string">"Fn::GetAtt"</span>: [
+                        <span class="hljs-string">"StreambotConnectorRole"</span>,
+                        <span class="hljs-string">"Arn"</span>
+                    ]
+                },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <ul>
+<li>Other properties as outlined in the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Description"</span> : <span class="hljs-string">"Create event source mappings between streams and Lambda functions"</span>,
+                <span class="hljs-string">"MemorySize"</span> : <span class="hljs-number">128</span>,
+                <span class="hljs-string">"Runtime"</span> : <span class="hljs-string">"nodejs"</span>,
+                <span class="hljs-string">"Timeout"</span> : <span class="hljs-number">10</span>
+            }
+        }
+    },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <h2 id="outputs">Outputs</h2>
+<p>For convenience, the Streambot stack provides outputs for values you will need in order to implement Lambda-backed services.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-string">"Outputs"</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <h3 id="streambotenv">StreambotEnv</h3>
+<p>This will be referenced by custom CloudFormation resources in your service templates.</p>
+<ul>
+<li>The name of the StreambotEnv function</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvFunctionName"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotEnvFunction"</span>
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <ul>
+<li>The ARN of the StreambotEnv function</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvFunctionArn"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Fn::GetAtt"</span>: [
+                    <span class="hljs-string">"StreambotEnvFunction"</span>,
+                    <span class="hljs-string">"Arn"</span>
+                ]
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <h3 id="streambotconnector">StreambotConnector</h3>
+<p>This will be referenced by custom CloudFormation resources in your service templates.</p>
+<ul>
+<li>The name of the StreambotConnector function</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotConnectorFunctionName"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotConnectorFunction"</span>
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <ul>
+<li>The ARN of the StreambotConnector function</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotConnectorFunctionArn"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Fn::GetAtt"</span>: [
+                    <span class="hljs-string">"StreambotConnectorFunction"</span>,
+                    <span class="hljs-string">"Arn"</span>
+                ]
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <h3 id="valid-configuration-url">Valid configuration URL</h3>
+<p>When using the StreambotEnv function, you must specify a path where the configuration file will be written that is within this S3 bucket/prefix.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"ValidEnvUrl"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Fn::Join"</span>: [
+                    <span class="hljs-string">""</span>,
+                    [
+                        <span class="hljs-string">"s3://"</span>,
+                        {
+                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvBucket"</span>
+                        },
+                        <span class="hljs-string">"/"</span>,
+                        {
+                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvPrefix"</span>
+                        },
+                        <span class="hljs-string">"*"</span>
+                    ]
+                ]
+            }
+        }
+    }
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

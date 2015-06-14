@@ -1,18 +1,34 @@
+// # Streambot
 var url = require('url');
 var https = require('https');
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 
+// ## Exports
+// - `require('streambot')` provides a function for you to wrap your own Lambd function with.
 module.exports = streambot;
+
+// - `require('streambot').env` provides a function to write configuration to files on S3
 module.exports.env = manageEnv;
+
+// - `require('streambot').connector` provides a function to manage event source mappings
 module.exports.connector = manageConnector;
 
+// ## Streambot wrapper
+// Pass the function you want to run on Lambda, and optionally the location where you've stored environment configuration on S3.
+// This loads the configuration from your S3 file into environment variables which will be accessible to your function.
 function streambot(service, envUrl) {
+
+  // A function is returned which is *what Lambda will actually execute*.
   return function streambot(event, context) {
+
+    // Provides the `context.done` function as a familiar Node.js-style callback function.
     var callback = context.done.bind(context);
 
+    // If there was no configuration file provided, simply call the caller-provided function, passing the event and the callback.
     if (!envUrl) return service(event, callback);
 
+    // Otherwise, load environment from S3.
     envUrl = url.parse(envUrl);
     console.log('Load environment from %s', envUrl);
 
@@ -20,21 +36,25 @@ function streambot(service, envUrl) {
       Bucket: envUrl.hostname,
       Key: envUrl.pathname.slice(1)
     }, function(err, data) {
-      if (err) return callback(err, 'Failed to load environment from S3');
 
+      // If the configuration file does not exist, the Lambda execution **will not** be retried.
+      if (err) return callback(err);
+
+      // Read the configuration file and set key-value pairs as environment variables.
       var env = JSON.parse(data.Body);
       Object.keys(env).forEach(function(key) {
         process.env[key] = env[key];
       });
 
+      // Run the caller-provided function with the environment properly configured.
       service(event, callback);
     });
   };
 }
 
+// ## Validate Events
+// Helper function confirms that an event is a [CloudFormation event](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-requests.html).
 function isCloudFormationEvent(event) {
-  // Confirm that the message is a CFN event
-  // http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-requests.html
   var required = [
     'RequestType',
     'ResourceProperties',
@@ -50,13 +70,21 @@ function isCloudFormationEvent(event) {
   }, true);
 }
 
+// ## respond
+// Helper function for responding to a Lambda invocation triggered by a custom CloudFormation resource.
+// The function will be passed a signed S3 URL, and the custom resource will wait for a file to be PUT there, indicating if the resource successfully completed or not.
+// Parameters:
+// - err: an Error object indicating that a failure occurred
+// - data: key-value pairs to make accessible via `Fn::GetAtt` in the CloudFormation template defining the resource
+// - event: the event that triggered Lambda invocation
+// - context: the context provided by the Lambda invocation
 function respond(err, data, event, context) {
-  if (err) console.log(err);
 
+  // Status is determined simply by the presence or absence of an `err` object.
+  if (err) console.log(err);
   var status = err ? 'FAILED' : 'SUCCESS';
 
-  // Build the required response
-  // http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-responses.html
+  // Build the required response. See [the AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/crpg-ref-responses.html) for more information.
   var body = JSON.stringify({
     Status: status,
     Reason: err ? err.message : '',
@@ -67,7 +95,7 @@ function respond(err, data, event, context) {
     Data: data
   });
 
-  // Build request options to send the response
+  // Build request options to send the response to the provided S3 URL.
   var parsedUrl = url.parse(event.ResponseURL);
   var options = {
     hostname: parsedUrl.hostname,
@@ -83,7 +111,7 @@ function respond(err, data, event, context) {
   console.log('Send response to: %j', options);
   console.log('Response body: %s', body);
 
-  // Send the response, log the result, retry 5 times on error before giving up
+  // Send the response, log the result, and retry 5 times on error before giving up.
   (function sendResponse(attempts) {
     if (attempts > 5) return context.done(new Error('Failed to respond to CloudFormation'));
 
@@ -102,29 +130,35 @@ function respond(err, data, event, context) {
   })(0);
 }
 
+// ## Manage configuration files
+// This function writes configuration files to S3.
+// It expects to be invoked by a custom CloudFormation resource.
+// This resource **must** provide an `EnvUrl`, where the file will be written.
+// Any other properties provided to the custom CloudFormation resource will become key-value pairs in the configuration file.
 function manageEnv(event, context) {
   if (!isCloudFormationEvent(event))
     return context.done(null, 'ERROR: Invalid CloudFormation event');
 
-  // Check that the custom CFN resource was given the right properties
+  // Check that the custom CloudFormation resource was given the required properties.
   if (!event.ResourceProperties.EnvUrl)
     return respond(new Error('Invalid StreambotEnv parameters'), null, event, context);
 
-  // Log information about what we're doing
+  // Log information about what we're doing.
   console.log('%s config for %s', event.RequestType, event.StackId);
 
+  // Determine where to put the configuration file.
   var parsedUrl = url.parse(event.ResourceProperties.EnvUrl);
   var s3Params = {
     Bucket: parsedUrl.hostname,
     Key: parsedUrl.pathname.slice(1)
   };
 
-  // CFN resource is being deleted. Remove the config from S3
+  // The custom CloudFormation resource is being deleted. Remove the config file from S3.
   if (event.RequestType === 'Delete') return s3.deleteObject(s3Params, function(err) {
     respond(err, null, event, context);
   });
 
-  // CFN resource is being created or updated. PUT the config to S3
+  // The custom CloudFormation resource is being created or updated. PUT the config to S3.
   var env = Object.keys(event.ResourceProperties).reduce(function(env, key) {
     if (key !== 'ServiceToken' && key !== 'EnvUrl')
       env[key] = event.ResourceProperties[key];
@@ -137,11 +171,23 @@ function manageEnv(event, context) {
   });
 }
 
+// ## Manage event source mappings
+// This function writes event source mappings between Kinesis/DynamoDB streams and Lambda functions.
+// It expects to be invoked by a custom CloudFormation resource.
+// This resource **must** provide:
+// - FunctionRegion: the AWS region containing the Lambda function
+// - FunctionName: the name of the Lambda function
+// - StreamArn: the ARN for the stream
+//
+// Other properties that **may be** provided:
+// - BatchSize [100]: the maximum number of stream records to process in a single Lambda invocation
+// - StartingPosition [TRIM_HORIZON]: the stream iterator type
+// - Enabled [true]: whether or not the event source mapping is active
 function manageConnector(event, context) {
   if (!isCloudFormationEvent(event))
     return context.done(null, 'ERROR: Invalid CloudFormation event');
 
-  // Check that the custom CFN resource was given the right properties
+  // Check that the custom CloudFormation resource was given the right properties.
   var requiredProperties = [
     'FunctionRegion',
     'FunctionName',
@@ -156,7 +202,7 @@ function manageConnector(event, context) {
   if (!valid)
     return respond(new Error('Invalid StreambotConnector parameters'), null, event, context);
 
-  // Log information about what we're doing
+  // Log information about what we're doing.
   console.log(
     '%s eventSourceMapping for %s: %s - %s',
     event.RequestType,
@@ -165,19 +211,25 @@ function manageConnector(event, context) {
     event.ResourceProperties.FunctionName
   );
 
-  // Check for an existing mapping
+  // Check for an existing mapping between this stream - function.
   var lambda = new AWS.Lambda({ region: event.ResourceProperties.FunctionRegion });
   lambda.listEventSourceMappings({
     EventSourceArn: event.ResourceProperties.StreamArn,
     FunctionName: event.ResourceProperties.FunctionName
   }, function(err, data) {
+
+    // The custom CloudFormation resource may have been misconfigured at create/update time (e.g. invalid Stream ARN value).
+    // In this case a `Delete` on this custom resource must succeed, even if the create or update failed in the first place.
     if (err && event.RequestType === 'Delete') return respond(null, null, event, context);
+
+    // If there is an error during a create/update, mark the action as a failure.
     if (err) return respond(err, null, event, context);
 
+    // Determine if this mapping already exists.
     var existingUUID = data.EventSourceMappings.length ?
       data.EventSourceMappings[0].UUID : null;
 
-    // Perform a delete if an existing mapping was found
+    // Perform a delete if an existing mapping was found.
     if (event.RequestType === 'Delete') {
       if (!existingUUID) return respond(null, null, event, context);
       return lambda.deleteEventSourceMapping({ UUID: existingUUID }, function(err) {
@@ -185,7 +237,7 @@ function manageConnector(event, context) {
       });
     }
 
-    // Build event source mapping request parameters
+    // Build event source mapping request parameters.
     var params = {
       FunctionName: event.ResourceProperties.FunctionName,
       BatchSize: event.ResourceProperties.BatchSize || 100,
@@ -193,6 +245,7 @@ function manageConnector(event, context) {
         event.ResourceProperties.Enabled : true
     };
 
+    // Account for differences between creating and updating an event source mapping.
     if (existingUUID) {
       params.UUID = existingUUID;
     } else {
@@ -200,7 +253,7 @@ function manageConnector(event, context) {
       params.EventSourceArn = event.ResourceProperties.StreamArn;
     }
 
-    // Create or update the mapping
+    // Create or update the mapping.
     var action = existingUUID ? 'updateEventSourceMapping' : 'createEventSourceMapping';
     lambda[action](params, function(err, data) {
       respond(err, data ? { UUID: data.UUID } : null, event, context);
