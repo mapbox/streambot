@@ -20,8 +20,8 @@ npm install --production \
   --target_platform=linux \
   --target_arch=x64 > /dev/null 2>&1
 
-mkdir -p "./build"
-zipfile="./build/bundle.zip"
+mkdir -p "build"
+zipfile="build/bundle.zip"
 if [ -f "$zipfile" ]; then
   rm "$zipfile"
 fi
@@ -33,4 +33,4 @@ zip -r -q "$zipfile" . -x *.git* -x ./build*
 removemodules > /dev/null 2>&1
 npm install > /dev/null 2>&1
 
-echo "$zipfile"
+echo "$(pwd)/$zipfile"

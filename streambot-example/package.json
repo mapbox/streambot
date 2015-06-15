@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "example of using streambot",
   "dependencies": {
-    "zipfile": "0.5.7",
+    "srs": "0.4.8",
     "streambot": "../"
   },
   "devDependencies": {
