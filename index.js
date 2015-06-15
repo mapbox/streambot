@@ -16,11 +16,11 @@ function streambot(service) {
       Key: { name: { S: context.functionName } }
     };
 
-    dynamodb.getItem(getParams, function(err, record) {
-      if (err) return callback(err);
-      if (!record) return service(event, callback);
+    dynamodb.getItem(getParams, function(err, data) {
+      if (err) throw err;
+      if (!data.Item) return service(event, callback);
 
-      var env = JSON.parse(record.env.S);
+      var env = JSON.parse(data.Item.env.S);
       Object.keys(env).forEach(function(key) {
         process.env[key] = env[key];
       });
