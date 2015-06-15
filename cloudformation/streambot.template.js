@@ -1,30 +1,57 @@
 // # Primary Streambot template
-// In order to use Streambot, you must "install" it by running one instance of this template in your AWS account.
-// This creates two Lambda function which your own custom stacks can all on via custom CloudFormation resources.
-{
+// In order to use Streambot, you must "install" it by running one instance of
+// this template in your AWS account. This creates two Lambda function which
+// your own custom stacks can all on via custom CloudFormation resources. It
+// also creates one DynamoDB table which must be called `streambot-env` where
+// runtime configurations for your Lambda functions are stored.
+// **It must be run in us-east-1**, because the DynamoDB table must be in a very
+// well-known location.
+module.exports = {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Streambot Lambda functions",
     // ## Parameters
-    // You must provide Streambot with three configuration parameters. Be conscious that the choice of `EnvBucket` and `EnvPrefix` that you choose here will determine where configuration files can be stored for any of your Lambda-backed services.
+    // Providing the Git SHA or version number of Streambot here insures that
+    // your Lambda functions are created using the expected version of Streambot.
     "Parameters": {
         "GitSha": {
             "Type": "String",
             "Description": "The GitSha of Streambot to deploy"
-        },
-        "EnvBucket": {
-            "Type": "String",
-            "Description": "S3 Bucket for Lambda runtime environment storage"
-        },
-        "EnvPrefix": {
-            "Type": "String",
-            "Description": "S3 Prefix for Lambda runtime environment storage"
         }
     },
     // ## Resources
-    // The stack creates two Lambda functions, and two IAM roles for those Lambda functions to assume
+    // The stack creates two Lambda functions, and two IAM roles for those
+    // Lambda functions to assume, and one DynamoDB table.
     "Resources": {
+        // ### Configuration table
+        // This DynamoDB table contains runtime configuration settings for your
+        // Lambda functions.
+        "StreambotEnvTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                // It is important that this table name be hard-wired. Otherwise
+                // Lambda functions will not know where to look for
+                // their configuration.
+                "TableName": "streambot-env",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "name",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "KeyType": "HASH",
+                        "AttributeName": "name"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "10",
+                    "WriteCapacityUnits": "10"
+                }
+            }
+        },
         // ### Environment configuration role
-        // This role is assumed but the StreambotEnv function
+        // This role is assumed by the StreambotEnv function
         "StreambotEnvRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -46,11 +73,13 @@
                 "Policies": [
                     {
                         // #### Runtime policy
-                        // Defines the permissions that the Lambda function will have once it has assumed this role.
+                        // Defines the permissions that the Lambda function will
+                        // have once it has assumed this role.
                         "PolicyName": "StreambotEnvPolicy",
                         "PolicyDocument": {
                             "Statement": [
-                                // - The Lambda function must be able to write CloudWatch logs.
+                                // - The Lambda function must be able to write
+                                // CloudWatch logs.
                                 {
                                     "Effect": "Allow",
                                     "Action": [
@@ -58,23 +87,24 @@
                                     ],
                                     "Resource": "arn:aws:logs:*:*:*"
                                 },
-                                // - The Lambda function must be able to write configuration files to the S3 bucket/prefix of your choosing. *Note*: all of your Lambda-backed services must explicitly write configuration files to this S3 bucket/prefix.
+                                // - The Lambda function must be able to write
+                                // configuration files to the DynamoDB table.
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "s3:PutObject",
-                                        "s3:DeleteObject"
+                                        "dynamodb:PutItem",
+                                        "dynamodb:DeleteItem"
                                     ],
                                     "Resource": {
                                         "Fn::Join": [
                                             "", [
-                                                "arn:aws:s3:::",
+                                                "arn:aws:dynamodb:us-east-1:",
                                                 {
-                                                    "Ref": "EnvBucket"
+                                                    "Ref": "AWS::AccountId"
                                                 },
-                                                "/",
+                                                ":table/",
                                                 {
-                                                    "Ref": "EnvPrefix"
+                                                    "Ref": "StreambotEnvTable"
                                                 },
                                                 "*"
                                             ]
@@ -88,11 +118,16 @@
             }
         },
         // ### StreambotEnv
-        // This function is intended to be run by a custom CloudFormation resource, and it is used to write a configuration file to S3
+        // This function is intended to be run by a custom CloudFormation
+        // resource, and it is used to write a configuration file to S3.
         "StreambotEnvFunction": {
             "Type" : "AWS::Lambda::Function",
             "Properties" : {
-                // - Code: The location of Streambot's code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a `.zip` file containing Streambot's `index.js` file.
+                // - Code: The location of Streambot's code for the desired
+                // GitSha/version. This file is publically available from a
+                // Mapbox bucket, or you could host the file in your own bucket
+                // if you wish. It is simply a `.zip` file containing
+                // Streambot's `index.js` file.
                 "Code" : {
                     "S3Bucket": "mapbox",
                     "S3Key": {
@@ -108,16 +143,20 @@
                         ]
                     }
                 },
-                // - Handler: Identifies which function from Streambot's `index.js` this Lambda function should execute. This should always be set to `index.env`.
+                // - Handler: Identifies which function from Streambot's
+                // `index.js` this Lambda function should execute. This should
+                // always be set to `index.env`.
                 "Handler" : "index.env",
-                // - Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.
+                // - Role: A reference to the IAM role defined above that allows
+                // this Lambda function to write files to S3.
                 "Role" : {
                     "Fn::GetAtt": [
                         "StreambotEnvRole",
                         "Arn"
                     ]
                 },
-                // - Other properties as outlined in the [AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html).
+                // - Other properties as outlined in the
+                // [AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html).
                 "Runtime" : "nodejs",
                 "Description" : "Builds runtime environment for Lambda functions",
                 "MemorySize" : 128,
@@ -125,7 +164,7 @@
             }
         },
         // ### Environment configuration role
-        // This role is assumed but the StreambotConnector function
+        // This role is assumed by the StreambotConnector function
         "StreambotConnectorRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -147,11 +186,13 @@
                 "Policies": [
                     {
                         // #### Runtime policy
-                        // Defines the permissions that the Lambda function will have once it has assumed this role.
+                        // Defines the permissions that the Lambda function will
+                        // have once it has assumed this role.
                         "PolicyName": "StreambotConnectorPolicy",
                         "PolicyDocument": {
                             "Statement": [
-                                // - The Lambda function must be able to write CloudWatch logs.
+                                // - The Lambda function must be able to write
+                                // CloudWatch logs.
                                 {
                                     "Effect": "Allow",
                                     "Action": [
@@ -159,7 +200,8 @@
                                     ],
                                     "Resource": "arn:aws:logs:*:*:*"
                                 },
-                                // - The Lambda function must be allowed to manage event source mappings.
+                                // - The Lambda function must be allowed to
+                                // manage event source mappings.
                                 {
                                     "Effect": "Allow",
                                     "Action": [
@@ -178,11 +220,17 @@
             }
         },
         // ### StreambotConnector
-        // This function is intended to be run by a custom CloudFormation resource, and it is used to manage event source mappings between Kinesis/DynamoDB streams and Lambda functions.
+        // This function is intended to be run by a custom CloudFormation
+        // resource, and it is used to manage event source mappings between
+        // Kinesis/DynamoDB streams and Lambda functions.
         "StreambotConnectorFunction": {
             "Type" : "AWS::Lambda::Function",
             "Properties" : {
-                // - Code: The location of Streambot's code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a `.zip` file containing Streambot's `index.js` file.
+                // - Code: The location of Streambot's code for the desired
+                // GitSha/version. This file is publically available from a
+                // Mapbox bucket, or you could host the file in your own bucket
+                // if you wish. It is simply a `.zip` file containing
+                // Streambot's `index.js` file.
                 "Code" : {
                     "S3Bucket": "mapbox",
                     "S3Key": {
@@ -198,16 +246,19 @@
                         ]
                     }
                 },
-                // - Handler: Identifies which function from Streambot's `index.js` this Lambda function should execute. This should always be set to `index.env`.
+                // - Handler: Identifies which function from Streambot's
+                // `index.js` this Lambda function should execute. This should always be set to `index.env`.
                 "Handler" : "index.connector",
-                // - Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.
+                // - Role: A reference to the IAM role defined above that allows
+                // this Lambda function to write files to S3.
                 "Role" : {
                     "Fn::GetAtt": [
                         "StreambotConnectorRole",
                         "Arn"
                     ]
                 },
-                // - Other properties as outlined in the [AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html).
+                // - Other properties as outlined in the
+                // [AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html).
                 "Description" : "Create event source mappings between streams and Lambda functions",
                 "MemorySize" : 128,
                 "Runtime" : "nodejs",
@@ -216,10 +267,12 @@
         }
     },
     // ## Outputs
-    // For convenience, the Streambot stack provides outputs for values you will need in order to implement Lambda-backed services.
+    // For convenience, the Streambot stack provides outputs for values you will
+    // need in order to implement Lambda-backed services.
     "Outputs": {
         // ### StreambotEnv
-        // This will be referenced by custom CloudFormation resources in your service templates.
+        // This will be referenced by custom CloudFormation resources in your
+        // service templates.
         // - The name of the StreambotEnv function
         "StreambotEnvFunctionName": {
             "Value": {
@@ -236,7 +289,8 @@
             }
         },
         // ### StreambotConnector
-        // This will be referenced by custom CloudFormation resources in your service templates.
+        // This will be referenced by custom CloudFormation resources in your
+        // service templates.
         // - The name of the StreambotConnector function
         "StreambotConnectorFunctionName": {
             "Value": {
@@ -252,20 +306,25 @@
                 ]
             }
         },
-        // ### Valid configuration URL
-        // When using the StreambotEnv function, you must specify a path where the configuration file will be written that is within this S3 bucket/prefix.
-        "ValidEnvUrl": {
+        // ### StreambotEnv Table
+        // This is nice to know, but should not be required by your Lambda
+        // functions.
+        "StreambotEnvTableName": {
+            "Value": {
+                "Ref": "StreambotEnvTable"
+            }
+        },
+        "StreambotEnvTableArn": {
             "Value": {
                 "Fn::Join": [
-                    "",
-                    [
-                        "s3://",
+                    "", [
+                        "arn:aws:dynamodb:us-east-1:",
                         {
-                            "Ref": "EnvBucket"
+                            "Ref": "AWS::AccountId"
                         },
-                        "/",
+                        ":table/",
                         {
-                            "Ref": "EnvPrefix"
+                            "Ref": "StreambotEnvTable"
                         },
                         "*"
                     ]
@@ -273,4 +332,4 @@
             }
         }
     }
-}
+};

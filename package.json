@@ -6,7 +6,8 @@
   "scripts": {
     "pretest": "jshint index.js test && jscs index.js test",
     "test": "echo 'tests disabled right now'",
-    "docs": "bin/docs"
+    "docs": "bin/docs",
+    "build": "bin/build"
   },
   "bin": {
     "streambot-bundle": "bin/bundle"

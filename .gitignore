@@ -1,3 +1,5 @@
+cloudformation/streambot.template
+streambot-example/streambot-example.template
 streambot-example/streambot.js
 streambot-example/.env
 streambot-example/node_modules/

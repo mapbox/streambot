@@ -2,6 +2,18 @@
 
 set -e
 
+# Build docs
+./bin/docs
+echo "Built documentation"
+
+# Copy annotated template files into standalone JSON documents
+main="./cloudformation/streambot.template"
+example="./streambot-example/streambot-example.template"
+node -e "require('fs').writeFile('$main', JSON.stringify(require('$main.js'), null, 4))"
+node -e "require('fs').writeFile('$example', JSON.stringify(require('$example.js'), null, 4))"
+echo "Built CloudFormation templates"
+
+# Bundle streambot code
 mkdir -p build
 zipfile=build/streambot.zip
 
@@ -11,4 +23,4 @@ fi
 
 zip -rq "$zipfile" index.js
 
-echo "$zipfile"
+echo "Streambot code bundled: $zipfile"

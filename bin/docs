@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
 
-docco cloudformation/streambot.annotated.template.js
-mv docs/streambot.annotated.template.html docs/streambot.template.html
-
-docco streambot-example/streambot-example.annotated.template.js
-mv docs/streambot-example.annotated.template.html docs/streambot-example.template.html
-
-docco streambot-example/index.js
+docco cloudformation/streambot.template.js streambot-example/streambot-example.template.js streambot-example/index.js
 mv docs/index.html docs/streambot-example.index.html
-
-docco index.js
-mv docs/index.html docs/streambot.index.html

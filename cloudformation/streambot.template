@@ -5,17 +5,31 @@
         "GitSha": {
             "Type": "String",
             "Description": "The GitSha of Streambot to deploy"
-        },
-        "EnvBucket": {
-            "Type": "String",
-            "Description": "S3 Bucket for Lambda runtime environment storage"
-        },
-        "EnvPrefix": {
-            "Type": "String",
-            "Description": "S3 Prefix for Lambda runtime environment storage"
         }
     },
     "Resources": {
+        "StreambotEnvTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": "streambot-env",
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "name",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "KeyType": "HASH",
+                        "AttributeName": "name"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "10",
+                    "WriteCapacityUnits": "10"
+                }
+            }
+        },
         "StreambotEnvRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -47,19 +61,20 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "s3:PutObject",
-                                        "s3:DeleteObject"
+                                        "dynamodb:PutItem",
+                                        "dynamodb:DeleteItem"
                                     ],
                                     "Resource": {
                                         "Fn::Join": [
-                                            "", [
-                                                "arn:aws:s3:::",
+                                            "",
+                                            [
+                                                "arn:aws:dynamodb:us-east-1:",
                                                 {
-                                                    "Ref": "EnvBucket"
+                                                    "Ref": "AWS::AccountId"
                                                 },
-                                                "/",
+                                                ":table/",
                                                 {
-                                                    "Ref": "EnvPrefix"
+                                                    "Ref": "StreambotEnvTable"
                                                 },
                                                 "*"
                                             ]
@@ -73,9 +88,9 @@
             }
         },
         "StreambotEnvFunction": {
-            "Type" : "AWS::Lambda::Function",
-            "Properties" : {
-                "Code" : {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
                     "S3Bucket": "mapbox",
                     "S3Key": {
                         "Fn::Join": [
@@ -90,17 +105,17 @@
                         ]
                     }
                 },
-                "Description" : "Builds runtime environment for Lambda functions",
-                "Handler" : "index.env",
-                "MemorySize" : 128,
-                "Role" : {
+                "Handler": "index.env",
+                "Role": {
                     "Fn::GetAtt": [
                         "StreambotEnvRole",
                         "Arn"
                     ]
                 },
-                "Runtime" : "nodejs",
-                "Timeout" : 10
+                "Runtime": "nodejs",
+                "Description": "Builds runtime environment for Lambda functions",
+                "MemorySize": 128,
+                "Timeout": 10
             }
         },
         "StreambotConnectorRole": {
@@ -149,9 +164,9 @@
             }
         },
         "StreambotConnectorFunction": {
-            "Type" : "AWS::Lambda::Function",
-            "Properties" : {
-                "Code" : {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
                     "S3Bucket": "mapbox",
                     "S3Key": {
                         "Fn::Join": [
@@ -166,17 +181,17 @@
                         ]
                     }
                 },
-                "Description" : "Create event source mappings between streams and Lambda functions",
-                "Handler" : "index.connector",
-                "MemorySize" : 128,
-                "Role" : {
+                "Handler": "index.connector",
+                "Role": {
                     "Fn::GetAtt": [
                         "StreambotConnectorRole",
                         "Arn"
                     ]
                 },
-                "Runtime" : "nodejs",
-                "Timeout" : 10
+                "Description": "Create event source mappings between streams and Lambda functions",
+                "MemorySize": 128,
+                "Runtime": "nodejs",
+                "Timeout": 10
             }
         }
     },
@@ -207,18 +222,23 @@
                 ]
             }
         },
-        "ValidEnvUrl": {
+        "StreambotEnvTableName": {
+            "Value": {
+                "Ref": "StreambotEnvTable"
+            }
+        },
+        "StreambotEnvTableArn": {
             "Value": {
                 "Fn::Join": [
                     "",
                     [
-                        "s3://",
+                        "arn:aws:dynamodb:us-east-1:",
                         {
-                            "Ref": "EnvBucket"
+                            "Ref": "AWS::AccountId"
                         },
-                        "/",
+                        ":table/",
                         {
-                            "Ref": "EnvPrefix"
+                            "Ref": "StreambotEnvTable"
                         },
                         "*"
                     ]

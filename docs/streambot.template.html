@@ -11,6 +11,34 @@
   <div id="container">
     <div id="background"></div>
     
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="streambot.template.html">
+                  streambot.template.js
+                </a>
+              
+                
+                <a class="source" href="index.html">
+                  index.js
+                </a>
+              
+                
+                <a class="source" href="streambot-example.template.html">
+                  streambot-example.template.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
     <ul class="sections">
         
         
@@ -22,12 +50,17 @@
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
               <h1 id="primary-streambot-template">Primary Streambot template</h1>
-<p>In order to use Streambot, you must “install” it by running one instance of this template in your AWS account.
-This creates two Lambda function which your own custom stacks can all on via custom CloudFormation resources.</p>
+<p>In order to use Streambot, you must “install” it by running one instance of
+this template in your AWS account. This creates two Lambda function which
+your own custom stacks can all on via custom CloudFormation resources. It
+also creates one DynamoDB table which must be called <code>streambot-env</code> where
+runtime configurations for your Lambda functions are stored.
+<strong>It must be run in us-east-1</strong>, because the DynamoDB table must be in a very
+well-known location.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>{
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports = {
     <span class="hljs-string">"AWSTemplateFormatVersion"</span>: <span class="hljs-string">"2010-09-09"</span>,
     <span class="hljs-string">"Description"</span>: <span class="hljs-string">"Streambot Lambda functions"</span>,</pre></div></div>
             
@@ -41,7 +74,8 @@ This creates two Lambda function which your own custom stacks can all on via cus
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
               <h2 id="parameters">Parameters</h2>
-<p>You must provide Streambot with three configuration parameters. Be conscious that the choice of <code>EnvBucket</code> and <code>EnvPrefix</code> that you choose here will determine where configuration files can be stored for any of your Lambda-backed services.</p>
+<p>Providing the Git SHA or version number of Streambot here insures that
+your Lambda functions are created using the expected version of Streambot.</p>
 
             </div>
             
@@ -49,14 +83,6 @@ This creates two Lambda function which your own custom stacks can all on via cus
         <span class="hljs-string">"GitSha"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
             <span class="hljs-string">"Description"</span>: <span class="hljs-string">"The GitSha of Streambot to deploy"</span>
-        },
-        <span class="hljs-string">"EnvBucket"</span>: {
-            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
-            <span class="hljs-string">"Description"</span>: <span class="hljs-string">"S3 Bucket for Lambda runtime environment storage"</span>
-        },
-        <span class="hljs-string">"EnvPrefix"</span>: {
-            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
-            <span class="hljs-string">"Description"</span>: <span class="hljs-string">"S3 Prefix for Lambda runtime environment storage"</span>
         }
     },</pre></div></div>
             
@@ -70,7 +96,8 @@ This creates two Lambda function which your own custom stacks can all on via cus
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
               <h2 id="resources">Resources</h2>
-<p>The stack creates two Lambda functions, and two IAM roles for those Lambda functions to assume</p>
+<p>The stack creates two Lambda functions, and two IAM roles for those
+Lambda functions to assume, and one DynamoDB table.</p>
 
             </div>
             
@@ -85,13 +112,14 @@ This creates two Lambda function which your own custom stacks can all on via cus
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
-              <h3 id="environment-configuration-role">Environment configuration role</h3>
-<p>This role is assumed but the StreambotEnv function</p>
+              <h3 id="configuration-table">Configuration table</h3>
+<p>This DynamoDB table contains runtime configuration settings for your
+Lambda functions.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvRole"</span>: {
-            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::IAM::Role"</span>,
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvTable"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::DynamoDB::Table"</span>,
             <span class="hljs-string">"Properties"</span>: {</pre></div></div>
             
         </li>
@@ -102,6 +130,59 @@ This creates two Lambda function which your own custom stacks can all on via cus
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>It is important that this table name be hard-wired. Otherwise
+Lambda functions will not know where to look for
+their configuration.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"TableName"</span>: <span class="hljs-string">"streambot-env"</span>,
+                <span class="hljs-string">"AttributeDefinitions"</span>: [
+                    {
+                        <span class="hljs-string">"AttributeName"</span>: <span class="hljs-string">"name"</span>,
+                        <span class="hljs-string">"AttributeType"</span>: <span class="hljs-string">"S"</span>
+                    }
+                ],
+                <span class="hljs-string">"KeySchema"</span>: [
+                    {
+                        <span class="hljs-string">"KeyType"</span>: <span class="hljs-string">"HASH"</span>,
+                        <span class="hljs-string">"AttributeName"</span>: <span class="hljs-string">"name"</span>
+                    }
+                ],
+                <span class="hljs-string">"ProvisionedThroughput"</span>: {
+                    <span class="hljs-string">"ReadCapacityUnits"</span>: <span class="hljs-string">"10"</span>,
+                    <span class="hljs-string">"WriteCapacityUnits"</span>: <span class="hljs-string">"10"</span>
+                }
+            }
+        },</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <h3 id="environment-configuration-role">Environment configuration role</h3>
+<p>This role is assumed by the StreambotEnv function</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvRole"</span>: {
+            <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::IAM::Role"</span>,
+            <span class="hljs-string">"Properties"</span>: {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <h4 id="assume-role-policy">Assume role policy</h4>
 <p>Identifies that this role can be assumed by a Lambda function.</p>
@@ -127,14 +208,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-6">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <h4 id="runtime-policy">Runtime policy</h4>
-<p>Defines the permissions that the Lambda function will have once it has assumed this role.</p>
+<p>Defines the permissions that the Lambda function will
+have once it has assumed this role.</p>
 
             </div>
             
@@ -145,14 +227,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-7">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <ul>
-<li>The Lambda function must be able to write CloudWatch logs.</li>
+<li>The Lambda function must be able to write
+CloudWatch logs.</li>
 </ul>
 
             </div>
@@ -168,14 +251,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-8">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <ul>
-<li>The Lambda function must be able to write configuration files to the S3 bucket/prefix of your choosing. <em>Note</em>: all of your Lambda-backed services must explicitly write configuration files to this S3 bucket/prefix.</li>
+<li>The Lambda function must be able to write
+configuration files to the DynamoDB table.</li>
 </ul>
 
             </div>
@@ -183,19 +267,19 @@ This creates two Lambda function which your own custom stacks can all on via cus
             <div class="content"><div class='highlight'><pre>                                {
                                     <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
                                     <span class="hljs-string">"Action"</span>: [
-                                        <span class="hljs-string">"s3:PutObject"</span>,
-                                        <span class="hljs-string">"s3:DeleteObject"</span>
+                                        <span class="hljs-string">"dynamodb:PutItem"</span>,
+                                        <span class="hljs-string">"dynamodb:DeleteItem"</span>
                                     ],
                                     <span class="hljs-string">"Resource"</span>: {
                                         <span class="hljs-string">"Fn::Join"</span>: [
                                             <span class="hljs-string">""</span>, [
-                                                <span class="hljs-string">"arn:aws:s3:::"</span>,
+                                                <span class="hljs-string">"arn:aws:dynamodb:us-east-1:"</span>,
                                                 {
-                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvBucket"</span>
+                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"AWS::AccountId"</span>
                                                 },
-                                                <span class="hljs-string">"/"</span>,
+                                                <span class="hljs-string">":table/"</span>,
                                                 {
-                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvPrefix"</span>
+                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotEnvTable"</span>
                                                 },
                                                 <span class="hljs-string">"*"</span>
                                             ]
@@ -212,14 +296,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-9">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <h3 id="streambotenv">StreambotEnv</h3>
-<p>This function is intended to be run by a custom CloudFormation resource, and it is used to write a configuration file to S3</p>
+<p>This function is intended to be run by a custom CloudFormation
+resource, and it is used to write a configuration file to S3.</p>
 
             </div>
             
@@ -230,14 +315,18 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-10">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <ul>
-<li>Code: The location of Streambot’s code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a <code>.zip</code> file containing Streambot’s <code>index.js</code> file.</li>
+<li>Code: The location of Streambot’s code for the desired
+GitSha/version. This file is publically available from a
+Mapbox bucket, or you could host the file in your own bucket
+if you wish. It is simply a <code>.zip</code> file containing
+Streambot’s <code>index.js</code> file.</li>
 </ul>
 
             </div>
@@ -261,14 +350,16 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-11">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <ul>
-<li>Handler: Identifies which function from Streambot’s <code>index.js</code> this Lambda function should execute. This should always be set to <code>index.env</code>.</li>
+<li>Handler: Identifies which function from Streambot’s
+<code>index.js</code> this Lambda function should execute. This should
+always be set to <code>index.env</code>.</li>
 </ul>
 
             </div>
@@ -278,14 +369,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-12">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <ul>
-<li>Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.</li>
+<li>Role: A reference to the IAM role defined above that allows
+this Lambda function to write files to S3.</li>
 </ul>
 
             </div>
@@ -300,14 +392,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-13">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <ul>
-<li>Other properties as outlined in the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
+<li>Other properties as outlined in the
+<a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
 </ul>
 
             </div>
@@ -322,14 +415,14 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-14">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <h3 id="environment-configuration-role">Environment configuration role</h3>
-<p>This role is assumed but the StreambotConnector function</p>
+<p>This role is assumed by the StreambotConnector function</p>
 
             </div>
             
@@ -341,11 +434,11 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-15">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <h4 id="assume-role-policy">Assume role policy</h4>
 <p>Identifies that this role can be assumed by a Lambda function.</p>
@@ -370,14 +463,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-16">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <h4 id="runtime-policy">Runtime policy</h4>
-<p>Defines the permissions that the Lambda function will have once it has assumed this role.</p>
+<p>Defines the permissions that the Lambda function will
+have once it has assumed this role.</p>
 
             </div>
             
@@ -388,14 +482,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-17">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <ul>
-<li>The Lambda function must be able to write CloudWatch logs.</li>
+<li>The Lambda function must be able to write
+CloudWatch logs.</li>
 </ul>
 
             </div>
@@ -411,14 +506,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-18">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <ul>
-<li>The Lambda function must be allowed to manage event source mappings.</li>
+<li>The Lambda function must be allowed to
+manage event source mappings.</li>
 </ul>
 
             </div>
@@ -444,14 +540,16 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-19">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <h3 id="streambotconnector">StreambotConnector</h3>
-<p>This function is intended to be run by a custom CloudFormation resource, and it is used to manage event source mappings between Kinesis/DynamoDB streams and Lambda functions.</p>
+<p>This function is intended to be run by a custom CloudFormation
+resource, and it is used to manage event source mappings between
+Kinesis/DynamoDB streams and Lambda functions.</p>
 
             </div>
             
@@ -462,14 +560,18 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-20">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <ul>
-<li>Code: The location of Streambot’s code for the desired GitSha/version. This file is publically available from a Mapbox bucket, or you could host the file in your own bucket if you wish. It is simply a <code>.zip</code> file containing Streambot’s <code>index.js</code> file.</li>
+<li>Code: The location of Streambot’s code for the desired
+GitSha/version. This file is publically available from a
+Mapbox bucket, or you could host the file in your own bucket
+if you wish. It is simply a <code>.zip</code> file containing
+Streambot’s <code>index.js</code> file.</li>
 </ul>
 
             </div>
@@ -493,14 +595,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-21">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <ul>
-<li>Handler: Identifies which function from Streambot’s <code>index.js</code> this Lambda function should execute. This should always be set to <code>index.env</code>.</li>
+<li>Handler: Identifies which function from Streambot’s
+<code>index.js</code> this Lambda function should execute. This should always be set to <code>index.env</code>.</li>
 </ul>
 
             </div>
@@ -510,14 +613,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-22">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <ul>
-<li>Role: A reference to the IAM role defined above that allows this Lambda function to write files to S3.</li>
+<li>Role: A reference to the IAM role defined above that allows
+this Lambda function to write files to S3.</li>
 </ul>
 
             </div>
@@ -532,14 +636,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-23">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <ul>
-<li>Other properties as outlined in the <a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
+<li>Other properties as outlined in the
+<a href="http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html">AWS documentation</a>.</li>
 </ul>
 
             </div>
@@ -555,14 +660,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-24">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <h2 id="outputs">Outputs</h2>
-<p>For convenience, the Streambot stack provides outputs for values you will need in order to implement Lambda-backed services.</p>
+<p>For convenience, the Streambot stack provides outputs for values you will
+need in order to implement Lambda-backed services.</p>
 
             </div>
             
@@ -571,14 +677,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-25">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <h3 id="streambotenv">StreambotEnv</h3>
-<p>This will be referenced by custom CloudFormation resources in your service templates.</p>
+<p>This will be referenced by custom CloudFormation resources in your
+service templates.</p>
 <ul>
 <li>The name of the StreambotEnv function</li>
 </ul>
@@ -594,11 +701,11 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-26">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <ul>
 <li>The ARN of the StreambotEnv function</li>
@@ -618,14 +725,15 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-27">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <h3 id="streambotconnector">StreambotConnector</h3>
-<p>This will be referenced by custom CloudFormation resources in your service templates.</p>
+<p>This will be referenced by custom CloudFormation resources in your
+service templates.</p>
 <ul>
 <li>The name of the StreambotConnector function</li>
 </ul>
@@ -641,11 +749,11 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-28">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <ul>
 <li>The ARN of the StreambotConnector function</li>
@@ -665,29 +773,34 @@ This creates two Lambda function which your own custom stacks can all on via cus
         </li>
         
         
-        <li id="section-29">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
-              <h3 id="valid-configuration-url">Valid configuration URL</h3>
-<p>When using the StreambotEnv function, you must specify a path where the configuration file will be written that is within this S3 bucket/prefix.</p>
+              <h3 id="streambotenv-table">StreambotEnv Table</h3>
+<p>This is nice to know, but should not be required by your Lambda
+functions.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"ValidEnvUrl"</span>: {
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvTableName"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotEnvTable"</span>
+            }
+        },
+        <span class="hljs-string">"StreambotEnvTableArn"</span>: {
             <span class="hljs-string">"Value"</span>: {
                 <span class="hljs-string">"Fn::Join"</span>: [
-                    <span class="hljs-string">""</span>,
-                    [
-                        <span class="hljs-string">"s3://"</span>,
+                    <span class="hljs-string">""</span>, [
+                        <span class="hljs-string">"arn:aws:dynamodb:us-east-1:"</span>,
                         {
-                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvBucket"</span>
+                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"AWS::AccountId"</span>
                         },
-                        <span class="hljs-string">"/"</span>,
+                        <span class="hljs-string">":table/"</span>,
                         {
-                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EnvPrefix"</span>
+                            <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotEnvTable"</span>
                         },
                         <span class="hljs-string">"*"</span>
                     ]
@@ -695,7 +808,7 @@ This creates two Lambda function which your own custom stacks can all on via cus
             }
         }
     }
-}</pre></div></div>
+};</pre></div></div>
             
         </li>
         

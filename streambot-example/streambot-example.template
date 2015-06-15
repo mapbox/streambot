@@ -13,6 +13,14 @@
         "EventPrefix": {
             "Type": "String",
             "Description": "The S3 prefix where events will be written"
+        },
+        "StreambotEnvFunctionArn": {
+            "Type": "String",
+            "Description": "The ARN for the StreambotEnv function set up by the primary Streambot template"
+        },
+        "StreambotConnectorFunctionArn": {
+            "Type": "String",
+            "Description": "The ARN for the StreambotConnector function set up by the primary Streambot template"
         }
     },
     "Resources": {
@@ -53,9 +61,20 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "s3:GetObject"
+                                        "dynamodb:GetItem"
                                     ],
-                                    "Resource": "arn:aws:s3:::mapbox/envs/streambot-example/example"
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:dynamodb:us-east-1:",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":table/streambot-env*"
+                                            ]
+                                        ]
+                                    }
                                 },
                                 {
                                     "Effect": "Allow",
@@ -114,35 +133,10 @@
                 ]
             }
         },
-        "StreambotExampleConfiguration": {
-            "Type": "Custom::StreambotEnv",
-            "Properties": {
-                "ServiceToken": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "arn:aws:lambda:us-east-1:",
-                            {
-                                "Ref": "AWS::AccountId"
-                            },
-                            ":function:streambot-testing-StreambotEnvFunction-IT1DG2DHET2Q"
-                        ]
-                    ]
-                },
-                "EventBucket": {
-                    "Ref": "EventBucket"
-                },
-                "EventPrefix": {
-                    "Ref": "EventPrefix"
-                },
-                "EnvUrl": "s3://mapbox/envs/streambot-example/example"
-            }
-        },
         "StreambotExampleFunction": {
-            "Type" : "AWS::Lambda::Function",
-            "DependsOn": "StreambotExampleConfiguration",
-            "Properties" : {
-                "Code" : {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
                     "S3Bucket": "mapbox",
                     "S3Key": {
                         "Fn::Join": [
@@ -157,33 +151,42 @@
                         ]
                     }
                 },
-                "Description" : "Streambot example function",
-                "Handler" : "index.streambot",
-                "MemorySize" : 128,
-                "Role" : {
+                "Role": {
                     "Fn::GetAtt": [
                         "StreambotExampleRole",
                         "Arn"
                     ]
                 },
-                "Runtime" : "nodejs",
-                "Timeout" : 10
+                "Description": "Streambot example function",
+                "Handler": "index.streambot",
+                "MemorySize": 128,
+                "Runtime": "nodejs",
+                "Timeout": 10
+            }
+        },
+        "StreambotExampleConfiguration": {
+            "Type": "Custom::StreambotEnv",
+            "Properties": {
+                "ServiceToken": {
+                    "Ref": "StreambotEnvFunctionArn"
+                },
+                "FunctionName": {
+                    "Ref": "StreambotExampleFunction"
+                },
+                "EventBucket": {
+                    "Ref": "EventBucket"
+                },
+                "EventPrefix": {
+                    "Ref": "EventPrefix"
+                }
             }
         },
         "StreambotExampleConnector": {
             "Type": "Custom::StreambotConnector",
+            "DependsOn": "StreambotExampleConfiguration",
             "Properties": {
                 "ServiceToken": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "arn:aws:lambda:us-east-1:",
-                            {
-                                "Ref": "AWS::AccountId"
-                            },
-                            ":function:streambot-testing-StreambotConnectorFunction-1T6WOHW28O6EJ"
-                        ]
-                    ]
+                    "Ref": "StreambotConnectorFunctionArn"
                 },
                 "FunctionRegion": {
                     "Ref": "AWS::Region"
