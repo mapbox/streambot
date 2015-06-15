@@ -2,11 +2,11 @@
 
 [![Build Status](https://travis-ci.org/mapbox/streambot.svg?branch=master)](https://travis-ci.org/mapbox/streambot)
 
-Streambot is a tool to help you manage [AWS Lambda](http://aws.amazon.com/lambda/) functions as persistent services via [AWS CloudFormation templates](http://aws.amazon.com/cloudformation/). It provides assistance for common scenarios where exiting CloudFormation support is still inadequate.
+Streambot is a tool to help you manage [AWS Lambda](http://aws.amazon.com/lambda/) functions as persistent services via [AWS CloudFormation templates](http://aws.amazon.com/cloudformation/). It provides assistance for common scenarios where existing CloudFormation support is still inadequate.
 
 #### Runtime configuration
 
-Lambda functions are inherently stateless, but a well-designed [Twelve-factor app](http://12factor.net/config) separates configuration from code. The [existing Lambda API](http://docs.aws.amazon.com/lambda/latest/dg/API_Reference.html) offers no way for you to configure your application differently across multiple deploys. Streambot provides helper functions to manage and load runtime configuration parameters in a DynamoDB table.
+Lambda functions are inherently stateless, but a well-designed [Twelve-factor app](http://12factor.net/config) separates configuration from code. The [existing Lambda API](http://docs.aws.amazon.com/lambda/latest/dg/API_Reference.html) offers no way for you to configure your application differently across multiple deploys. Streambot provides helper functions to manage and load runtime configuration parameters separately from your code.
 
 #### EventSourceMappings
 
@@ -14,7 +14,7 @@ Lambda functions are inherently stateless, but a well-designed [Twelve-factor ap
 
 #### Node.js function bundling
 
-In order to manage a Lambda functions via CloudFormation, the code behind you function must be bundled into a `.zip` file and uploaded to S3. If your function has dependencies that include C++ addons precompiled via [node-pre-gyp](https://github.com/mapbox/node-pre-gyp), Streambot will help you bundle your code with dependencies for the correct platform/architecture to run on AWS Lambda, regardless of your native OS.
+In order to manage a Lambda function via CloudFormation, the code behind your function must be bundled into a `.zip` file and uploaded to S3. If your function has dependencies that include C++ addons precompiled via [node-pre-gyp](https://github.com/mapbox/node-pre-gyp), Streambot will help you bundle your code with dependencies for the correct platform/architecture to run on AWS Lambda, regardless of your native OS.
 
 ## Installation
 
@@ -31,11 +31,11 @@ $ npm run-script build
 # See ./docs/streambot.template.html for details of the resources that are created
 ```
 
-Now you can start a new CloudFormation stack using the template. You may do this using [the web console](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) or using an automation tool such as [cfn-config](https://github.com/mapbox/cfn-config).
+Now you can start a new CloudFormation stack using the template. You may do this using [the web console](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stack.html) or using an automation tool such as [cfn-config](https://github.com/mapbox/cfn-config). *Note:* you **must** create this template in the `us-east-1` region. If you don't, your Lambda functions will not know where to find their runtime configuration.
 
 ## Your service stack
 
-Once the Streambot stack has been created, you're ready to writing your own Lambda-backed services. The `streambot-example` folder provides an example of how a service might look. There are a number of concepts to grasp as you embark on this journey.
+Once the Streambot stack has been created, you're ready to write your own Lambda-backed services. The `streambot-example` folder provides an example of how a service might look. There are a number of concepts to grasp as you embark on this journey.
 
 ### Bundling your code with streambot
 
@@ -45,7 +45,7 @@ Streambot provides a wrapper function for you to put around your code. This wrap
 var streambot = require('streambot');
 
 function myFunction(event, callback) {
-  // This is your code to process an event.
+  // This is your custom code to process an event.
   // fire the `callback` when finished, in familiar Node.js-style (err first,
   // result after).
 
@@ -60,7 +60,7 @@ If your function has dependencies that include C++ addons precompiled via [node-
 
 ### Writing your CloudFormation template
 
-Your CloudFormation template will need to create a [Lambda function](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html) and also an [IAM role](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html) defining that function's permissions. Using Streambot may mean adding a couple more resources.
+Your CloudFormation template will need to create a [Lambda function](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html) and also an [IAM role](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html) defining that function's permissions. Using Streambot may mean adding a couple more resources, depending on how you wish to use it.
 
 #### IAM Role
 
@@ -72,17 +72,7 @@ You'll have to make an IAM role, and it should completely cover any permissions 
     "Action": [
         "dynamodb:GetItem"
     ],
-    "Resource": {
-        "Fn::Join": [
-            "",
-            [
-                "arn:aws:dynamodb:us-east-1:",
-                {
-                    "Ref": "AWS::AccountId"
-                },
-                ":table/streambot-env*"
-            ]
-        ]
+    "Resource": "arn:aws:dynamodb:us-east-1:123456789012:table/streambot-env*"
     }
 }
 ```
@@ -107,7 +97,7 @@ Property | Description
 --- | ---
 **ServiceToken** | The ARN for the StreambotEnv function provided by Streambot's primary template. This is available as an output from the primary stack.
 **FunctionName** | The name of the Lambda function which you're providing configuration for.
--any other- | All other properties passed to the custom resource will be provided as environment key-value pairs to your Lambda function.
+-any other- | All other properties passed to the custom resource will be provided as environment key-value pairs to your Lambda function at runtime.
 
 #### StreambotConnector
 
