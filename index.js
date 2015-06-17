@@ -16,9 +16,13 @@ function streambot(service) {
       Key: { name: { S: context.functionName } }
     };
 
+    console.log('Load Environment: %s', JSON.stringify(getParams));
     dynamodb.getItem(getParams, function(err, data) {
       if (err) throw err;
-      if (!data.Item) return service(event, callback);
+      if (!data.Item) {
+        console.log('No Environment found!');
+        return service(event, callback);
+      }
 
       var env = JSON.parse(data.Item.env.S);
       Object.keys(env).forEach(function(key) {
