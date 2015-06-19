@@ -3,6 +3,8 @@ var https = require('https');
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 
+var tableName = module.exports.tableName = 'streambot-env';
+
 module.exports = streambot;
 module.exports.env = manageEnv;
 module.exports.connector = manageConnector;
@@ -12,7 +14,7 @@ function streambot(service) {
     var callback = context.done.bind(context);
 
     var getParams = {
-      TableName: 'streambot-env',
+      TableName: tableName,
       Key: { name: { S: context.functionName } }
     };
 
@@ -107,7 +109,7 @@ function manageEnv(event, context) {
   console.log('%s config for %s', event.RequestType, event.ResourceProperties.FunctionName);
 
   if (event.RequestType === 'Delete') return dynamodb.deleteItem({
-    TableName: 'streambot-env',
+    TableName: tableName,
     Key: { name: { S: event.ResourceProperties.FunctionName } }
   }, function(err) {
     respond(err, null, event, context);
@@ -120,7 +122,7 @@ function manageEnv(event, context) {
   }, {});
 
   dynamodb.putItem({
-    TableName: 'streambot-env',
+    TableName: tableName,
     Item: {
       name: { S: event.ResourceProperties.FunctionName },
       env: { S: JSON.stringify(env) }

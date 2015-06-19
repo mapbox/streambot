@@ -7,9 +7,7 @@ cd "$1"
 
 function removemodules() {
   for filename in node_modules/*; do
-    if [ "$filename" != "node_modules/streambot" ]; then
-      npm uninstall "$(basename "$filename")"
-    fi
+    npm uninstall "$(basename "$filename")"
   done
 }
 

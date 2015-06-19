@@ -15,10 +15,12 @@
   "author": "Mapbox",
   "license": "ISC",
   "devDependencies": {
-    "cfn-test": "0.0.3",
+    "aws-sdk": "^2.1.35",
+    "cfn-test": "^0.1.0",
     "docco": "^0.7.0",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
+    "mkdirp": "^0.5.1",
     "tape": "^3.5.0",
     "zipfile": "^0.5.7"
   },

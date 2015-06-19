@@ -1,3 +1,5 @@
+var streambot = require('..');
+
 // # Primary Streambot template
 // In order to use Streambot, you must "install" it by running one instance of
 // this template in your AWS account. This creates two Lambda function which
@@ -31,7 +33,7 @@ module.exports = {
                 // It is important that this table name be hard-wired. Otherwise
                 // Lambda functions will not know where to look for
                 // their configuration.
-                "TableName": "streambot-env",
+                "TableName": streambot.tableName,
                 "AttributeDefinitions": [
                     {
                         "AttributeName": "name",
@@ -148,7 +150,7 @@ module.exports = {
                 // always be set to `index.env`.
                 "Handler" : "index.env",
                 // - Role: A reference to the IAM role defined above that allows
-                // this Lambda function to write files to S3.
+                // this Lambda function to write files to DynamoDB.
                 "Role" : {
                     "Fn::GetAtt": [
                         "StreambotEnvRole",

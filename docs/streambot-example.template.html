@@ -10,7 +10,7 @@
 <body>
   <div id="container">
     <div id="background"></div>
-    
+
       <ul id="jump_to">
         <li>
           <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
@@ -18,34 +18,34 @@
           <div id="jump_wrapper">
           <div id="jump_page_wrapper">
             <div id="jump_page">
-              
-                
+
+
                 <a class="source" href="streambot.template.html">
                   streambot.template.js
                 </a>
-              
-                
+
+
                 <a class="source" href="index.html">
                   index.js
                 </a>
-              
-                
+
+
                 <a class="source" href="streambot-example.template.html">
                   streambot-example.template.js
                 </a>
-              
+
             </div>
           </div>
         </li>
       </ul>
-    
+
     <ul class="sections">
-        
-        
-        
+
+
+
         <li id="section-1">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
@@ -57,17 +57,17 @@ method to invoke the Lambda function. This is only meant to provide an
 example of one possible configuration.</p>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports = {
     <span class="hljs-string">"AWSTemplateFormatVersion"</span>: <span class="hljs-string">"2010-09-09"</span>,
     <span class="hljs-string">"Description"</span>: <span class="hljs-string">"A simple streambot example"</span>,</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-2">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
               </div>
@@ -76,7 +76,7 @@ example of one possible configuration.</p>
 runtime configuration for the Lambda Function</p>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>    <span class="hljs-string">"Parameters"</span>: {
         <span class="hljs-string">"GitSha"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"String"</span>,
@@ -99,13 +99,13 @@ runtime configuration for the Lambda Function</p>
             <span class="hljs-string">"Description"</span>: <span class="hljs-string">"The ARN for the StreambotConnector function set up by the primary Streambot template"</span>
         }
     },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-3">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
@@ -124,15 +124,15 @@ stream and the Lambda function</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>    <span class="hljs-string">"Resources"</span>: {</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-4">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
@@ -141,20 +141,20 @@ stream and the Lambda function</li>
 trigger invocation of the primary Lambda function.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotExampleStream"</span>: {
+
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"Stream"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::Kinesis::Stream"</span>,
             <span class="hljs-string">"Properties"</span>: {
                 <span class="hljs-string">"ShardCount"</span>: <span class="hljs-number">1</span>
             }
         },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-5">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
@@ -162,18 +162,18 @@ trigger invocation of the primary Lambda function.</p>
 <p>An IAM Role that can be assumed by the primary Lambda function.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotExampleRole"</span>: {
+
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"Role"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::IAM::Role"</span>,
             <span class="hljs-string">"Properties"</span>: {
                 <span class="hljs-string">"Path"</span>: <span class="hljs-string">"/streambot/"</span>,</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-6">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
@@ -181,7 +181,7 @@ trigger invocation of the primary Lambda function.</p>
 <p>Identifies that this role can be assumed by a Lambda function.</p>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"AssumeRolePolicyDocument"</span>: {
                     <span class="hljs-string">"Statement"</span>: [
                         {
@@ -196,13 +196,13 @@ trigger invocation of the primary Lambda function.</p>
                 },
                 <span class="hljs-string">"Policies"</span>: [
                     {</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-7">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
@@ -211,17 +211,17 @@ trigger invocation of the primary Lambda function.</p>
 have once it has assumed this role.</p>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                        <span class="hljs-string">"PolicyName"</span>: <span class="hljs-string">"StreambotExamplePolicy"</span>,
                         <span class="hljs-string">"PolicyDocument"</span>: {
                             <span class="hljs-string">"Statement"</span>: [</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-8">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
@@ -231,7 +231,7 @@ CloudWatch logs.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                                {
                                     <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
                                     <span class="hljs-string">"Action"</span>: [
@@ -239,13 +239,13 @@ CloudWatch logs.</li>
                                     ],
                                     <span class="hljs-string">"Resource"</span>: <span class="hljs-string">"arn:aws:logs:*:*:*"</span>
                                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-9">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
@@ -255,7 +255,7 @@ its configuration file from DynamoDB</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                                {
                                     <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
                                     <span class="hljs-string">"Action"</span>: [
@@ -263,7 +263,8 @@ its configuration file from DynamoDB</li>
                                     ],
                                     <span class="hljs-string">"Resource"</span>: {
                                         <span class="hljs-string">"Fn::Join"</span>: [
-                                            <span class="hljs-string">""</span>, [
+                                            <span class="hljs-string">""</span>,
+                                            [
                                                 <span class="hljs-string">"arn:aws:dynamodb:us-east-1:"</span>,
                                                 {
                                                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"AWS::AccountId"</span>
@@ -273,13 +274,13 @@ its configuration file from DynamoDB</li>
                                         ]
                                     }
                                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-10">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
@@ -290,7 +291,7 @@ permission to do so.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                                {
                                     <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
                                     <span class="hljs-string">"Action"</span>: [
@@ -314,13 +315,13 @@ permission to do so.</li>
                                         ]
                                     }
                                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-11">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
@@ -330,7 +331,7 @@ permission to read from the Kinesis stream</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                                {
                                     <span class="hljs-string">"Effect"</span>: <span class="hljs-string">"Allow"</span>,
                                     <span class="hljs-string">"Action"</span>: [
@@ -353,7 +354,7 @@ permission to read from the Kinesis stream</li>
                                                 },
                                                 <span class="hljs-string">":stream/"</span>,
                                                 {
-                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotExampleStream"</span>
+                                                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"Stream"</span>
                                                 }
                                             ]
                                         ]
@@ -365,13 +366,13 @@ permission to read from the Kinesis stream</li>
                 ]
             }
         },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-12">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
@@ -381,17 +382,17 @@ streambot-example/index.js). It reads records from a Kinesis stream
 and writes them to S3.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotExampleFunction"</span>: {
+
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"Function"</span>: {
             <span class="hljs-string">"Type"</span> : <span class="hljs-string">"AWS::Lambda::Function"</span>,
             <span class="hljs-string">"Properties"</span> : {</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-13">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
@@ -401,7 +402,7 @@ to S3, and refer to it here.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Code"</span> : {
                     <span class="hljs-string">"S3Bucket"</span>: <span class="hljs-string">"mapbox"</span>,
                     <span class="hljs-string">"S3Key"</span>: {
@@ -417,36 +418,36 @@ to S3, and refer to it here.</li>
                         ]
                     }
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-14">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <ul>
-<li>Role: Refers to the ARN of the StreambotExampleRole defined
+<li>Role: Refers to the ARN of the Role defined
 above.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Role"</span> : {
                     <span class="hljs-string">"Fn::GetAtt"</span>: [
-                        <span class="hljs-string">"StreambotExampleRole"</span>,
+                        <span class="hljs-string">"Role"</span>,
                         <span class="hljs-string">"Arn"</span>
                     ]
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-15">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
@@ -456,7 +457,7 @@ above.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"Description"</span> : <span class="hljs-string">"Streambot example function"</span>,
                 <span class="hljs-string">"Handler"</span> : <span class="hljs-string">"index.streambot"</span>,
                 <span class="hljs-string">"MemorySize"</span> : <span class="hljs-number">128</span>,
@@ -464,13 +465,13 @@ above.</li>
                 <span class="hljs-string">"Timeout"</span> : <span class="hljs-number">10</span>
             }
         },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-16">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
@@ -481,17 +482,17 @@ configuration to a record in DynamoDB, which the Lambda function can
 read at runtime.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotExampleConfiguration"</span>: {
+
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"Config"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"Custom::StreambotEnv"</span>,
             <span class="hljs-string">"Properties"</span>: {</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-17">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
@@ -502,17 +503,17 @@ function it created.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"ServiceToken"</span>: {
                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotEnvFunctionArn"</span>
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-18">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
@@ -522,17 +523,17 @@ Lambda function this configuration pertains to.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"FunctionName"</span>: {
-                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotExampleFunction"</span>
+                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"Function"</span>
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-19">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
@@ -542,7 +543,7 @@ configuration file as key-value pairs.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"EventBucket"</span>: {
                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"EventBucket"</span>
                 },
@@ -551,33 +552,32 @@ configuration file as key-value pairs.</li>
                 }
             }
         },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-20">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <h2 id="kinesis-lambda-connector">Kinesis-Lambda connector</h2>
 <p>This custom resource is backed by a globally-defined Lambda function
 (see Streambot’s primary template). It creates an event source
-mapping between the StreambotExampleStream and the
-StreambotExampleFunction.</p>
+mapping between the Stream and the Function.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotExampleConnector"</span>: {
+
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"Connector"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"Custom::StreambotConnector"</span>,</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-21">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
@@ -586,16 +586,16 @@ events are not fed to the Lambda function before the runtime
 configuration is ready.</p>
 
             </div>
-            
-            <div class="content"><div class='highlight'><pre>            <span class="hljs-string">"DependsOn"</span>: <span class="hljs-string">"StreambotExampleConfiguration"</span>,
+
+            <div class="content"><div class='highlight'><pre>            <span class="hljs-string">"DependsOn"</span>: <span class="hljs-string">"Config"</span>,
             <span class="hljs-string">"Properties"</span>: {</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-22">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
@@ -606,17 +606,17 @@ function it created.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"ServiceToken"</span>: {
                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotConnectorFunctionArn"</span>
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-23">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
@@ -626,17 +626,17 @@ function runs.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"FunctionRegion"</span>: {
                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"AWS::Region"</span>
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-24">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
@@ -645,26 +645,26 @@ function runs.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"FunctionName"</span>: {
-                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotExampleFunction"</span>
+                    <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"Function"</span>
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-25">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <ul>
-<li>StreamArn: the ARN for the StreambotExampleStream</li>
+<li>StreamArn: the ARN for the Stream</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"StreamArn"</span>: {
                     <span class="hljs-string">"Fn::Join"</span>: [
                         <span class="hljs-string">""</span>,
@@ -679,18 +679,18 @@ function runs.</li>
                             },
                             <span class="hljs-string">":stream/"</span>,
                             {
-                                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"StreambotExampleStream"</span>
+                                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"Stream"</span>
                             }
                         ]
                     ]
                 },</pre></div></div>
-            
+
         </li>
-        
-        
+
+
         <li id="section-26">
             <div class="annotation">
-              
+
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
@@ -701,16 +701,23 @@ iterator type), and <code>Enabled</code>.</li>
 </ul>
 
             </div>
-            
+
             <div class="content"><div class='highlight'><pre>                <span class="hljs-string">"BatchSize"</span>: <span class="hljs-number">1</span>,
-                <span class="hljs-string">"StartingPosition"</span>: <span class="hljs-string">"LATEST"</span>
+                <span class="hljs-string">"StartingPosition"</span>: <span class="hljs-string">"TRIM_HORIZON"</span>
+            }
+        }
+    },
+    <span class="hljs-string">"Outputs"</span>: {
+        <span class="hljs-string">"StreamName"</span>: {
+            <span class="hljs-string">"Value"</span>: {
+                <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"Stream"</span>
             }
         }
     }
 };</pre></div></div>
-            
+
         </li>
-        
+
     </ul>
   </div>
 </body>

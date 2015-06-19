@@ -47,7 +47,7 @@ module.exports = {
         // ### Kinesis stream
         // A Kinesis stream with one shard. Records in this stream with
         // trigger invocation of the primary Lambda function.
-        "StreambotExampleStream": {
+        "Stream": {
             "Type": "AWS::Kinesis::Stream",
             "Properties": {
                 "ShardCount": 1
@@ -55,7 +55,7 @@ module.exports = {
         },
         // ### Lambda's runtime role
         // An IAM Role that can be assumed by the primary Lambda function.
-        "StreambotExampleRole": {
+        "Role": {
             "Type": "AWS::IAM::Role",
             "Properties": {
                 "Path": "/streambot/",
@@ -99,7 +99,8 @@ module.exports = {
                                     ],
                                     "Resource": {
                                         "Fn::Join": [
-                                            "", [
+                                            "",
+                                            [
                                                 "arn:aws:dynamodb:us-east-1:",
                                                 {
                                                     "Ref": "AWS::AccountId"
@@ -159,7 +160,7 @@ module.exports = {
                                                 },
                                                 ":stream/",
                                                 {
-                                                    "Ref": "StreambotExampleStream"
+                                                    "Ref": "Stream"
                                                 }
                                             ]
                                         ]
@@ -175,7 +176,7 @@ module.exports = {
         // This is the Lambda function that defines this example service (see
         // streambot-example/index.js). It reads records from a Kinesis stream
         // and writes them to S3.
-        "StreambotExampleFunction": {
+        "Function": {
             "Type" : "AWS::Lambda::Function",
             "Properties" : {
                 // - Code: You must upload your Lambda function as a .zip file
@@ -195,11 +196,11 @@ module.exports = {
                         ]
                     }
                 },
-                // - Role: Refers to the ARN of the StreambotExampleRole defined
+                // - Role: Refers to the ARN of the Role defined
                 // above.
                 "Role" : {
                     "Fn::GetAtt": [
-                        "StreambotExampleRole",
+                        "Role",
                         "Arn"
                     ]
                 },
@@ -217,7 +218,7 @@ module.exports = {
         // (see Streambot's primary template). It puts the intended
         // configuration to a record in DynamoDB, which the Lambda function can
         // read at runtime.
-        "StreambotExampleConfiguration": {
+        "Config": {
             "Type": "Custom::StreambotEnv",
             "Properties": {
                 // - ServiceToken: after setting up the primary Streambot
@@ -229,7 +230,7 @@ module.exports = {
                 // - FunctionName: you must provide the complete name of the
                 // Lambda function this configuration pertains to.
                 "FunctionName": {
-                    "Ref": "StreambotExampleFunction"
+                    "Ref": "Function"
                 },
                 // - Any other Properties provided will be written into the
                 // configuration file as key-value pairs.
@@ -244,14 +245,13 @@ module.exports = {
         // ## Kinesis-Lambda connector
         // This custom resource is backed by a globally-defined Lambda function
         // (see Streambot's primary template). It creates an event source
-        // mapping between the StreambotExampleStream and the
-        // StreambotExampleFunction.
-        "StreambotExampleConnector": {
+        // mapping between the Stream and the Function.
+        "Connector": {
             "Type": "Custom::StreambotConnector",
             // By depending on the configuration, we can make sure that stream
             // events are not fed to the Lambda function before the runtime
             // configuration is ready.
-            "DependsOn": "StreambotExampleConfiguration",
+            "DependsOn": "Config",
             "Properties": {
                 // - ServiceToken: after setting up the primary Streambot
                 // template, you must provide the ARN to the StreambotConnector
@@ -266,9 +266,9 @@ module.exports = {
                 },
                 // - FunctionName: the name of the primary Lambda function.
                 "FunctionName": {
-                    "Ref": "StreambotExampleFunction"
+                    "Ref": "Function"
                 },
-                // - StreamArn: the ARN for the StreambotExampleStream
+                // - StreamArn: the ARN for the Stream
                 "StreamArn": {
                     "Fn::Join": [
                         "",
@@ -283,7 +283,7 @@ module.exports = {
                             },
                             ":stream/",
                             {
-                                "Ref": "StreambotExampleStream"
+                                "Ref": "Stream"
                             }
                         ]
                     ]
@@ -292,7 +292,14 @@ module.exports = {
                 // of records per Lambda Invocation), `StartingPosition` (Stream
                 // iterator type), and `Enabled`.
                 "BatchSize": 1,
-                "StartingPosition": "LATEST"
+                "StartingPosition": "TRIM_HORIZON"
+            }
+        }
+    },
+    "Outputs": {
+        "StreamName": {
+            "Value": {
+                "Ref": "Stream"
             }
         }
     }
