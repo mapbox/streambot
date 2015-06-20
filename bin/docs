@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+docco cloudformation/streambot.template.js streambot-example/streambot-example.template.js streambot-example/index.js
+mv docs/index.html docs/streambot-example.index.html

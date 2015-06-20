@@ -3,23 +3,24 @@
   "version": "2.0.6",
   "description": "Assisted deploys to Lambda",
   "main": "index.js",
-  "engines": {
-    "node": "^0.12.0"
-  },
   "scripts": {
-    "pretest": "jshint index.js bin test && jscs index.js bin test",
-    "test": "tape test/*.test.js"
+    "pretest": "jshint index.js test && jscs index.js test",
+    "test": "tape test/*.test.js",
+    "docs": "bin/docs",
+    "build": "bin/build"
   },
   "bin": {
-    "streambot-bundle": "bin/bundle",
-    "streambot-deploy": "bin/deploy.js"
+    "streambot-bundle": "bin/bundle"
   },
   "author": "Mapbox",
   "license": "ISC",
   "devDependencies": {
-    "cfn-test": "0.0.3",
+    "aws-sdk": "^2.1.35",
+    "cfn-test": "^0.1.0",
+    "docco": "^0.7.0",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
+    "mkdirp": "^0.5.1",
     "tape": "^3.5.0",
     "zipfile": "^0.5.7"
   },
@@ -33,13 +34,5 @@
     "undef": true,
     "unused": true,
     "noarg": true
-  },
-  "dependencies": {
-    "aws-sdk": "^2.1.23",
-    "dotenv": "^1.0.0",
-    "fastlog": "^1.1.0",
-    "minimist": "^1.1.1",
-    "queue-async": "^1.0.7",
-    "underscore": "^1.8.2"
   }
 }

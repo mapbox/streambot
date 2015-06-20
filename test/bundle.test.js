@@ -47,9 +47,8 @@ test('[bundle] bundle', function(assert) {
 
     assert.ok(filenames.indexOf('index.js') > -1, 'contains index.js');
     assert.ok(filenames.indexOf('package.json') > -1, 'contains package.json');
-    assert.ok(filenames.indexOf('streambot-example.template') > -1, 'contains streambot-example.template');
     assert.ok(filenames.indexOf('node_modules/streambot/index.js') > -1, 'contains node_modules/streambot/index.js');
-    assert.ok(filenames.indexOf('node_modules/mapnik/lib/binding/node-v11-linux-x64/mapnik.node') > -1, 'contains node_modules/mapnik/lib/binding/node-v11-linux-x64/mapnik.node');
+    assert.ok(filenames.indexOf('node_modules/srs/lib/binding/node-v11-linux-x64/srs.node') > -1, 'contains node_modules/srs/lib/binding/node-v11-linux-x64/srs.node');
     assert.ok(filenames.indexOf('node_modules/tape/index.js') < 0, 'does not contain node_modules/tape/index.js');
     assert.ok(filenames.indexOf('.git/should-not-bundle') < 0, 'does not bundle .git folders');
 
@@ -61,7 +60,7 @@ test('[bundle] back to normal', function(assert) {
   var binding = path.join(
     example,
     'node_modules',
-    'mapnik',
+    'srs',
     'lib',
     'binding'
   );
@@ -69,7 +68,7 @@ test('[bundle] back to normal', function(assert) {
   var dir = fs.readdirSync(binding)[0];
   var re = new RegExp(process.platform + '-' + process.arch);
   assert.ok(re.test(dir), 'folder for platform/arch');
-  assert.ok(fs.readdirSync(path.join(binding, dir)).indexOf('mapnik.node'), 'found mapnik.node');
+  assert.ok(fs.readdirSync(path.join(binding, dir)).indexOf('srs.node') > -1, 'found srs.node');
 
   var expected = path.join(
     example,

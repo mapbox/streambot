@@ -1,65 +1,21 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "streambot travis user",
+  "Description": "Streambot travis user",
   "Resources": {
     "TravisUser": {
       "Type": "AWS::IAM::User",
       "Properties": {
         "Policies": [
           {
-            "PolicyName": "test",
+            "PolicyName": "BuildStreambot",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
                 {
-                  "Action": [
-                    "cloudformation:DeleteStack",
-                    "cloudformation:DescribeStacks",
-                    "cloudformation:DescribeStackResources",
-                    "cloudformation:CreateStack",
-                    "kinesis:CreateStream",
-                    "kinesis:DeleteStream",
-                    "kinesis:DescribeStream",
-                    "sns:CreateTopic",
-                    "sns:DeleteTopic",
-                    "sns:Subscribe",
-                    "sns:ListTopics",
-                    "iam:CreateRole",
-                    "iam:DeleteRole",
-                    "iam:GetRole",
-                    "iam:CreatePolicy",
-                    "iam:DeletePolicy",
-                    "iam:PutRolePolicy",
-                    "iam:DeleteRolePolicy",
-                    "iam:PassRole",
-                    "cloudwatch:PutMetricAlarm",
-                    "cloudwatch:DeleteAlarms",
-                    "cloudwatch:PutMetricData",
-                    "lambda:*"
-                  ],
-                  "Effect": "Allow",
                   "Resource": [
-                    "*"
-                  ]
-                },
-                {
-                  "Resource": [
-                    "arn:aws:s3:::mapbox-sandbox/streambot-test*"
+                    "arn:aws:s3:::mapbox/apps/streambot/*"
                   ],
                   "Action": [
-                    "s3:GetObject",
-                    "s3:PutObject",
-                    "s3:PutObjectACL",
-                    "s3:DeleteObject"
-                  ],
-                  "Effect": "Allow"
-                },
-                {
-                  "Resource": [
-                    "arn:aws:s3:::cf-templates-mapbox-us-east-1/streambot/*"
-                  ],
-                  "Action": [
-                    "s3:GetObject",
                     "s3:PutObject",
                     "s3:PutObjectACL"
                   ],
