@@ -3,11 +3,11 @@ var https = require('https');
 var AWS = require('aws-sdk');
 var dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 
-var tableName = module.exports.tableName = 'streambot-env';
-
 module.exports = streambot;
 module.exports.env = manageEnv;
 module.exports.connector = manageConnector;
+
+var tableName = module.exports.tableName = 'streambot-env';
 
 function streambot(service) {
   return function streambot(event, context) {
