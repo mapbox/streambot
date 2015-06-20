@@ -9,3 +9,10 @@ Is built using [docco](http://jashkenas.github.io/docco/). Use `//` to write com
 ## Travis
 
 Travis is used to bundle code and put it on S3 with its ACL set to `public-read`. It makes two `.zip` files, one containing nothing but the `index.js` file defining Streambot's wrapper and Lambda functions, and another representing the bundled streambot-example.
+
+Travis also runs basic tests that do not require an AWS permissions to complete.
+
+## Tests
+
+- `test/*.test.js` files run unit tests that do not require AWS credentials.
+- `test/live-test.js` can be run by users with permissions to Mapbox AWS Infrastructure. This script is an integration test that runs the streambot-example stack and confirms that its Lambda function is able to do what it is expected to do.

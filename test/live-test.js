@@ -74,7 +74,7 @@ test('[live] confirm template adjustment', function(assert) {
   var templateTableName = template.Resources.StreambotEnvTable.Properties.TableName;
   assert.equal(templateTableName, tableName, 'Table name altered in test template');
   if (templateTableName !== tableName)
-    throw err(new Error('Halting tests before stacks are created'));
+    throw new Error('Halting tests before stacks are created');
   assert.end();
 });
 
@@ -102,7 +102,7 @@ function moreTests() {
 
   // Munge the example package.json to point at the altered streambot code
   test('[live] adjust example package.json', function(assert) {
-    mungedPackage = JSON.parse(JSON.stringify(originalPackage));
+    var mungedPackage = JSON.parse(JSON.stringify(originalPackage));
     mungedPackage.dependencies.streambot = folder;
     fs.writeFileSync(examplePackage, JSON.stringify(mungedPackage, null, 2));
     assert.end();

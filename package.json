@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "pretest": "jshint index.js test && jscs index.js test",
-    "test": "echo 'tests disabled right now'",
+    "test": "tape test/*.test.js",
     "docs": "bin/docs",
     "build": "bin/build"
   },
