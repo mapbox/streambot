@@ -7,10 +7,10 @@ before_install:
 script:
 - ./bin/build
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/${TRAVIS_COMMIT}.zip
-- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match).template; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match).zip; fi
 - ./bin/bundle ./streambot-example
 - aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox/apps/streambot/${TRAVIS_COMMIT}-example.zip
-- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match)-example.template; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox/apps/streambot/$(git describe --tags --exact-match)-example.zip; fi
 - npm test
 env:
   global:
