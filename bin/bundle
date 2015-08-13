@@ -4,6 +4,7 @@ set -e
 
 # Only argument is the directory to bundle
 cd "$1"
+zipfile=${2:-$(pwd)/build/bundle.zip}
 
 function removemodules() {
   for filename in node_modules/*; do
@@ -19,7 +20,6 @@ npm install --production \
   --target_arch=x64 > /dev/null 2>&1
 
 mkdir -p "build"
-zipfile="build/bundle.zip"
 if [ -f "$zipfile" ]; then
   rm "$zipfile"
 fi
@@ -31,4 +31,4 @@ zip -r -q "$zipfile" . -x *.git* -x ./build*
 removemodules > /dev/null 2>&1
 npm install > /dev/null 2>&1
 
-echo "$(pwd)/$zipfile"
+echo "$zipfile"
