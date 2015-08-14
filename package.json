@@ -34,5 +34,8 @@
     "undef": true,
     "unused": true,
     "noarg": true
+  },
+  "dependencies": {
+    "agentkeepalive": "^2.0.3"
   }
 }

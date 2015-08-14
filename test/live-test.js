@@ -38,15 +38,15 @@ test('[live] bundle custom test code', function(assert) {
         fs.createReadStream(path.resolve(__dirname, '..', 'bin', 'bundle'))
           .pipe(fs.createWriteStream(path.join(folder, 'bin', 'bundle')))
           .on('finish', function() {
-            // zip up the streambot bundle for upload
-            var cmd = [
-              'zip', '-rqj',
-              bundle,
-              mungedIndex
-            ].join(' ');
 
-            exec(cmd, function(err) {
-              if (err) throw err;
+            // do an npm install in the tmpdir
+            exec('bin/bundle ' + folder + ' ' + bundle, function(err, stdout, stderr) {
+              if (err) {
+                console.error(stdout);
+                console.error(stderr);
+                throw err;
+              }
+
               assert.end();
             });
           });

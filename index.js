@@ -1,16 +1,30 @@
 var url = require('url');
 var https = require('https');
 var AWS = require('aws-sdk');
-var dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
+var AgentKeepAlive = require('agentkeepalive');
 
 module.exports = streambot;
 module.exports.env = manageEnv;
 module.exports.connector = manageConnector;
+module.exports.agent = new AgentKeepAlive.HttpsAgent({
+  keepAlive: true,
+  maxSockets: Math.ceil(require('os').cpus().length * 16),
+  keepAliveTimeout: 60000
+});
 
 var tableName = module.exports.tableName = 'streambot-env';
+var dynamodb = new AWS.DynamoDB({
+  region: 'us-east-1',
+  maxRetries: 1000,
+  httpOptions: {
+    timeout: 500,
+    agent: module.exports.agent
+  }
+});
 
 function streambot(service) {
   return function streambot(event, context) {
+    console.log('Start time: %s', (new Date()).toISOString());
     var callback = context.done.bind(context);
 
     var getParams = {
