@@ -2,6 +2,9 @@
   "name": "streambot",
   "version": "3.1.1",
   "description": "Assisted deploys to Lambda",
+  "engines": {
+    "node": "0.10.38"
+  },
   "main": "index.js",
   "scripts": {
     "pretest": "jshint index.js test && jscs index.js test",
