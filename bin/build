@@ -21,6 +21,11 @@ if [ -f "$zipfile" ]; then
   rm "$zipfile"
 fi
 
-zip -rq "$zipfile" index.js
+rm -rf node_modules
+npm install --production
+
+zip -rq "$zipfile" index.js node_modules
 
 echo "Streambot code bundled: $zipfile"
+
+npm install
