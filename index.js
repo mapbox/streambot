@@ -70,6 +70,11 @@ function respond(err, data, event, context) {
   if (err) console.log(err);
   var status = err ? 'FAILED' : 'SUCCESS';
 
+  if (err && !err.message) {
+    err.message = 'An unexpected error occurred';
+    if (err.code) err.message += ': ' + err.code;
+  }
+
   var body = JSON.stringify({
     Status: status,
     Reason: err ? err.message : '',
