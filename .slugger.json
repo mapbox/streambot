@@ -1,3 +1,4 @@
 {
-  "slug-zip": true
+  "slug-zip": true,
+  "slug-acl": "public-read"
 }

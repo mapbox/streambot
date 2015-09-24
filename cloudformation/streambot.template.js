@@ -12,12 +12,31 @@ module.exports = {
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Streambot Lambda functions",
     // ## Parameters
-    // Providing the Git SHA or version number of Streambot here insures that
-    // your Lambda functions are created using the expected version of Streambot.
     "Parameters": {
+        // Providing the Git SHA or version number of Streambot here insures that
+        // your Lambda functions are created using the expected version of Streambot.
         "GitSha": {
             "Type": "String",
             "Description": "The GitSha of Streambot to deploy"
+        },
+        // Provide the ARN of an existing streambot table in us-east-1 if running
+        // Streambot in another region
+        "ExistingStreambotTable": {
+            "Type": "String",
+            "Description": "The ARN of an existing",
+            "Default": ""
+        }
+    },
+    // ## Conditions
+    "Conditions": {
+        // Determines whether or not a table should be created
+        "MakeTable": {
+            "Fn::Equals": [
+                {
+                    "Ref": "ExistingStreambotTable"
+                },
+                ""
+            ]
         }
     },
     // ## Resources
@@ -29,6 +48,7 @@ module.exports = {
         // Lambda functions.
         "StreambotEnvTable": {
             "Type": "AWS::DynamoDB::Table",
+            "Condition": "MakeTable",
             "Properties": {
                 // It is important that this table name be hard-wired. Otherwise
                 // Lambda functions will not know where to look for
@@ -98,18 +118,26 @@ module.exports = {
                                         "dynamodb:DeleteItem"
                                     ],
                                     "Resource": {
-                                        "Fn::Join": [
-                                            "", [
-                                                "arn:aws:dynamodb:us-east-1:",
-                                                {
-                                                    "Ref": "AWS::AccountId"
-                                                },
-                                                ":table/",
-                                                {
-                                                    "Ref": "StreambotEnvTable"
-                                                },
-                                                "*"
-                                            ]
+                                        "Fn::If": [
+                                            "MakeTable",
+                                            {
+                                                "Fn::Join": [
+                                                    "", [
+                                                        "arn:aws:dynamodb:us-east-1:",
+                                                        {
+                                                            "Ref": "AWS::AccountId"
+                                                        },
+                                                        ":table/",
+                                                        {
+                                                            "Ref": "StreambotEnvTable"
+                                                        },
+                                                        "*"
+                                                    ]
+                                                ]
+                                            },
+                                            {
+                                                "Ref": "ExistingStreambotTable"
+                                            }
                                         ]
                                     }
                                 }
@@ -131,12 +159,22 @@ module.exports = {
                 // if you wish. It is simply a `.zip` file containing
                 // Streambot's `index.js` file.
                 "Code" : {
-                    "S3Bucket": "mapbox",
+                    "S3Bucket": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                "mapbox",
+                                {
+                                    "Ref": "AWS::Region"
+                                }
+                            ]
+                        ]
+                    },
                     "S3Key": {
                         "Fn::Join": [
                             "",
                             [
-                                "apps/streambot/",
+                                "slugs/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
@@ -234,12 +272,22 @@ module.exports = {
                 // if you wish. It is simply a `.zip` file containing
                 // Streambot's `index.js` file.
                 "Code" : {
-                    "S3Bucket": "mapbox",
+                    "S3Bucket": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                "mapbox",
+                                {
+                                    "Ref": "AWS::Region"
+                                }
+                            ]
+                        ]
+                    },
                     "S3Key": {
                         "Fn::Join": [
                             "",
                             [
-                                "apps/streambot/",
+                                "slugs/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
@@ -305,31 +353,6 @@ module.exports = {
                 "Fn::GetAtt": [
                     "StreambotConnectorFunction",
                     "Arn"
-                ]
-            }
-        },
-        // ### StreambotEnv Table
-        // This is nice to know, but should not be required by your Lambda
-        // functions.
-        "StreambotEnvTableName": {
-            "Value": {
-                "Ref": "StreambotEnvTable"
-            }
-        },
-        "StreambotEnvTableArn": {
-            "Value": {
-                "Fn::Join": [
-                    "", [
-                        "arn:aws:dynamodb:us-east-1:",
-                        {
-                            "Ref": "AWS::AccountId"
-                        },
-                        ":table/",
-                        {
-                            "Ref": "StreambotEnvTable"
-                        },
-                        "*"
-                    ]
                 ]
             }
         }
