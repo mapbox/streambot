@@ -174,7 +174,7 @@ module.exports = {
                         "Fn::Join": [
                             "",
                             [
-                                "slugs/streambot/",
+                                "release/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
@@ -287,7 +287,7 @@ module.exports = {
                         "Fn::Join": [
                             "",
                             [
-                                "slugs/streambot/",
+                                "release/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
