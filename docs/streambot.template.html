@@ -206,6 +206,7 @@ Lambda functions.</p>
             <div class="content"><div class='highlight'><pre>        <span class="hljs-string">"StreambotEnvTable"</span>: {
             <span class="hljs-string">"Type"</span>: <span class="hljs-string">"AWS::DynamoDB::Table"</span>,
             <span class="hljs-string">"Condition"</span>: <span class="hljs-string">"MakeTable"</span>,
+            <span class="hljs-string">"DeletionPolicy"</span> : <span class="hljs-string">"Retain"</span>,
             <span class="hljs-string">"Properties"</span>: {</pre></div></div>
             
         </li>
@@ -441,7 +442,7 @@ Streambot’s <code>index.js</code> file.</li>
                         <span class="hljs-string">"Fn::Join"</span>: [
                             <span class="hljs-string">""</span>,
                             [
-                                <span class="hljs-string">"slugs/streambot/"</span>,
+                                <span class="hljs-string">"release/streambot/"</span>,
                                 {
                                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"GitSha"</span>
                                 },
@@ -696,7 +697,7 @@ Streambot’s <code>index.js</code> file.</li>
                         <span class="hljs-string">"Fn::Join"</span>: [
                             <span class="hljs-string">""</span>,
                             [
-                                <span class="hljs-string">"slugs/streambot/"</span>,
+                                <span class="hljs-string">"release/streambot/"</span>,
                                 {
                                     <span class="hljs-string">"Ref"</span>: <span class="hljs-string">"GitSha"</span>
                                 },

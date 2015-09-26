@@ -49,6 +49,7 @@ module.exports = {
         "StreambotEnvTable": {
             "Type": "AWS::DynamoDB::Table",
             "Condition": "MakeTable",
+            "DeletionPolicy" : "Retain",
             "Properties": {
                 // It is important that this table name be hard-wired. Otherwise
                 // Lambda functions will not know where to look for
