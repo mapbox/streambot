@@ -8,13 +8,14 @@ function test(name, assertions) {
 
   tape(name, function(t) {
     AWS.DynamoDB = function() {};
+
     AWS.DynamoDB.prototype.getItem = function(params, callback) {
       callback(null, {
         Item: {
           env: { S: JSON.stringify({ var: 'value' }) }
         }
       });
-    }
+    };
 
     var done = t.end.bind(t);
     t.end = function(err) {
@@ -22,6 +23,7 @@ function test(name, assertions) {
       if (err) return done(err);
       done();
     };
+
     assertions(t);
   });
 }
