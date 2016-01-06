@@ -1,6 +1,7 @@
 var tape = require('tape');
 var AWS = require('aws-sdk');
 var streambot = require('..');
+var util = require('util');
 
 // mock dynamodb client
 function test(name, assertions) {
@@ -34,7 +35,10 @@ test('sets env vars', function(assert) {
     callback();
   });
 
-  fn({}, { done: assert.end.bind(assert) });
+  fn({}, {
+    done: assert.end.bind(assert),
+    getRemainingTimeInMillis: function() { return 10000; }
+  });
 });
 
 test('sets context', function(assert) {
@@ -45,7 +49,8 @@ test('sets context', function(assert) {
 
   fn({}, {
     done: assert.end.bind(assert),
-    val: 'value'
+    val: 'value',
+    getRemainingTimeInMillis: function() { return 10000; }
   });
 });
 
@@ -56,5 +61,29 @@ test('passes event', function(assert) {
     callback();
   });
 
-  fn(expected, { done: assert.end.bind(assert) });
+  fn(expected, {
+    done: assert.end.bind(assert),
+    getRemainingTimeInMillis: function() { return 10000; }
+  });
+});
+
+test('implements timeout log', function(assert) {
+  assert.plan(1);
+
+  var log = console.log;
+  console.log = function(msg) {
+    log(util.format.apply(null, arguments));
+    if (msg === '[timeout] Function will timeout in 200ms')
+      assert.pass('logs timeout');
+  };
+
+  var fn = streambot(function(event, callback) {
+    setTimeout(callback, 500);
+  });
+
+  fn({}, {
+    done: function() { console.log = log; },
+
+    getRemainingTimeInMillis: function() { return 10; }
+  });
 });
