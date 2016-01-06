@@ -13,18 +13,24 @@ module.exports.agent = new AgentKeepAlive.HttpsAgent({
 });
 
 var tableName = module.exports.tableName = 'streambot-env';
-var dynamodb = new AWS.DynamoDB({
-  region: 'us-east-1',
-  maxRetries: 1000,
-  httpOptions: {
-    timeout: 500,
-    agent: module.exports.agent
-  }
-});
 
 function streambot(service) {
+  var dynamodb = new AWS.DynamoDB({
+    region: 'us-east-1',
+    maxRetries: 1000,
+    httpOptions: {
+      timeout: 500,
+      agent: module.exports.agent
+    }
+  });
+
   return function streambot(event, context) {
     console.log('Start time: %s', (new Date()).toISOString());
+
+    setTimeout(function() {
+      console.log('[timeout] Function will timeout in 200ms');
+    }, context.getRemainingTimeInMillis() - 200).unref();
+
     var callback = context.done.bind(context);
 
     var getParams = {
@@ -37,7 +43,7 @@ function streambot(service) {
       if (err) throw err;
       if (!data.Item) {
         console.log('No Environment found!');
-        return service(event, callback);
+        return service.call(context, event, callback);
       }
 
       var env = JSON.parse(data.Item.env.S);
@@ -45,7 +51,7 @@ function streambot(service) {
         process.env[key] = env[key];
       });
 
-      service(event, callback);
+      service.call(context, event, callback);
     });
   };
 }
@@ -119,6 +125,15 @@ function respond(err, data, event, context) {
 }
 
 function manageEnv(event, context) {
+  var dynamodb = new AWS.DynamoDB({
+    region: 'us-east-1',
+    maxRetries: 1000,
+    httpOptions: {
+      timeout: 500,
+      agent: module.exports.agent
+    }
+  });
+
   if (!isCloudFormationEvent(event))
     return context.done(null, 'ERROR: Invalid CloudFormation event');
 

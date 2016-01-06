@@ -11,6 +11,7 @@ var s3 = new AWS.S3();
 var kinesis = new AWS.Kinesis({ region: 'us-east-1' });
 
 var testId = crypto.randomBytes(8).toString('hex');
+console.log('Running test with id: %s', testId);
 
 var tableName = 'streambot-test-' + testId;
 var folder = path.join(os.tmpdir(), testId);
@@ -57,8 +58,8 @@ test('[live] bundle custom test code', function(assert) {
 // Upload adjusted bundle to S3
 test('[live] upload custom bundle', function(assert) {
   s3.putObject({
-    Bucket: 'mapbox',
-    Key: 'apps/streambot/' + testId + '.zip',
+    Bucket: 'mapbox-us-east-1',
+    Key: 'release/streambot/' + testId + '.zip',
     Body: fs.createReadStream(bundle),
     ACL: 'public-read'
   }, function(err) {
