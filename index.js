@@ -36,7 +36,11 @@ function streambot(service) {
 
     console.log('Load Environment: %s', JSON.stringify(getParams));
     dynamodb.getItem(getParams, function(err, data) {
-      if (err) throw err;
+      if (err) {
+        console.log('[error] Failed to load environment: %s', err.message);
+        return context.fail(err);
+      }
+
       if (!data.Item) {
         console.log('No Environment found!');
         return service.call(context, event, callback);
@@ -48,6 +52,16 @@ function streambot(service) {
       });
 
       service.call(context, event, callback);
+    }).on('retry', function(res) {
+      if (res.error) {
+        console.log('[failed request] dynamodb.getItem | %s | request id: %s | retries: %s',
+          res.error.code, res.requestId, res.retryCount
+        );
+
+        // Other errors automatically retryable by aws-sdk:
+        // https://github.com/aws/aws-sdk-js/blob/d20ddadd7ac39b81f4262cacd1ad29813988bf84/lib/service.js#L314-L320
+        if (res.error.name === 'TimeoutError') res.error.retryable = true;
+      }
     });
   };
 }
