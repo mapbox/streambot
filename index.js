@@ -27,10 +27,6 @@ function streambot(service) {
   return function streambot(event, context) {
     console.log('Start time: %s', (new Date()).toISOString());
 
-    setTimeout(function() {
-      console.log('[timeout] Function will timeout in 200ms');
-    }, context.getRemainingTimeInMillis() - 200).unref();
-
     var callback = context.done.bind(context);
 
     var getParams = {
