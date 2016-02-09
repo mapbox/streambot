@@ -7,7 +7,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "pretest": "jshint index.js test && jscs index.js test",
+    "pretest": "eslint index.js test && jscs index.js test",
     "test": "tape test/*.test.js",
     "docs": "bin/docs",
     "build": "bin/build"
@@ -22,21 +22,15 @@
     "cfn-test": "^0.1.0",
     "docco": "^0.7.0",
     "jscs": "^1.11.3",
-    "jshint": "^2.6.3",
     "mkdirp": "^0.5.1",
     "tape": "^3.5.0",
-    "zipfile": "^0.5.7"
+    "zipfile": "^0.5.7",
+    "eslint": "~1.00.0",
+    "eslint-config-unstyled": "^1.1.0"
   },
   "jscsConfig": {
     "preset": "airbnb",
     "requireCamelCaseOrUpperCaseIdentifiers": null
-  },
-  "jshintConfig": {
-    "node": true,
-    "globalstrict": false,
-    "undef": true,
-    "unused": true,
-    "noarg": true
   },
   "dependencies": {
     "agentkeepalive": "^2.0.3"
