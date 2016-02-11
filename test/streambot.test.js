@@ -2,6 +2,7 @@ var tape = require('tape');
 var AWS = require('aws-sdk');
 var streambot = require('..');
 var events = require('events');
+var util = require('util');
 
 // mock dynamodb client
 function test(name, assertions) {
@@ -64,6 +65,28 @@ test('passes event', function(assert) {
 
   fn(expected, {
     done: assert.end.bind(assert),
+    getRemainingTimeInMillis: function() { return 10000; }
+  });
+});
+
+test('logs md5', function(assert) {
+  var log = console.log;
+  var messages = [];
+  console.log = function() {
+    messages.push(util.format.apply(null, arguments));
+  };
+
+  var fn = streambot(function(event, callback) {
+    callback();
+  });
+
+  fn({ banana: 'pajamas' }, {
+    done: function() {
+      console.log = log.bind(console);
+      assert.ok(messages.indexOf('Event md5: 768bc7325b3d2eff12ed9ecbd7f471f3') > -1, 'printed md5 of event');
+      assert.end();
+    },
+
     getRemainingTimeInMillis: function() { return 10000; }
   });
 });

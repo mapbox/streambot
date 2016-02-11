@@ -2,6 +2,7 @@ var url = require('url');
 var https = require('https');
 var AWS = require('aws-sdk');
 var AgentKeepAlive = require('agentkeepalive');
+var crypto = require('crypto');
 
 module.exports = streambot;
 module.exports.env = manageEnv;
@@ -26,6 +27,7 @@ function streambot(service) {
 
   return function streambot(event, context) {
     console.log('Start time: %s', (new Date()).toISOString());
+    console.log('Event md5: %s', crypto.createHash('md5').update(JSON.stringify(event)).digest('hex'));
 
     var callback = context.done.bind(context);
 
