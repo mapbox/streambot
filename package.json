@@ -1,6 +1,6 @@
 {
   "name": "streambot",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "description": "Assisted deploys to Lambda",
   "engines": {
     "node": "0.10.38"
