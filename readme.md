@@ -58,6 +58,11 @@ module.exports.streambot = streambot(myFunction);
 
 If your function has dependencies that include C++ addons precompiled via [node-pre-gyp](https://github.com/mapbox/node-pre-gyp), you can use Streambot's `bin/bundle` script to bundle your code with dependencies for the correct platform/architecture to run on AWS Lambda, regardless of your native OS. Once you've bundled your function, you need to upload it to S3.
 
+If your function doesn't have dependencies that rely on C++ addons, you can create a ZIP file yourself with any archiving
+tool and upload it to S3.
+
+Remember where you upload the bundles, because you'll need to specify their location when you create the Lambda function.
+
 ### Writing your CloudFormation template
 
 Your CloudFormation template will need to create a [Lambda function](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html) and also an [IAM role](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html) defining that function's permissions. Using Streambot may mean adding a couple more resources, depending on how you wish to use it.
