@@ -18,25 +18,6 @@ module.exports = {
         "GitSha": {
             "Type": "String",
             "Description": "The GitSha of Streambot to deploy"
-        },
-        // Provide the ARN of an existing streambot table in us-east-1 if running
-        // Streambot in another region
-        "ExistingStreambotTable": {
-            "Type": "String",
-            "Description": "The ARN of an existing",
-            "Default": ""
-        }
-    },
-    // ## Conditions
-    "Conditions": {
-        // Determines whether or not a table should be created
-        "MakeTable": {
-            "Fn::Equals": [
-                {
-                    "Ref": "ExistingStreambotTable"
-                },
-                ""
-            ]
         }
     },
     // ## Resources
@@ -48,7 +29,6 @@ module.exports = {
         // Lambda functions.
         "StreambotEnvTable": {
             "Type": "AWS::DynamoDB::Table",
-            "Condition": "MakeTable",
             "DeletionPolicy" : "Retain",
             "Properties": {
                 // It is important that this table name be hard-wired. Otherwise
@@ -119,26 +99,22 @@ module.exports = {
                                         "dynamodb:DeleteItem"
                                     ],
                                     "Resource": {
-                                        "Fn::If": [
-                                            "MakeTable",
-                                            {
-                                                "Fn::Join": [
-                                                    "", [
-                                                        "arn:aws:dynamodb:us-east-1:",
-                                                        {
-                                                            "Ref": "AWS::AccountId"
-                                                        },
-                                                        ":table/",
-                                                        {
-                                                            "Ref": "StreambotEnvTable"
-                                                        },
-                                                        "*"
-                                                    ]
-                                                ]
-                                            },
-                                            {
-                                                "Ref": "ExistingStreambotTable"
-                                            }
+                                        "Fn::Join": [
+                                            "", [
+                                                "arn:aws:dynamodb:",
+                                                {
+                                                    "Ref": "StreambotEnvTable"
+                                                },
+                                                ":",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":table/",
+                                                {
+                                                    "Ref": "StreambotEnvTable"
+                                                },
+                                                "*"
+                                            ]
                                         ]
                                     }
                                 }
