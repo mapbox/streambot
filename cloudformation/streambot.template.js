@@ -203,6 +203,118 @@ module.exports = {
                 "MemorySize" : 128,
                 "Timeout" : 10
             }
+        },
+        // ### Environment configuration role
+        // This role is assumed by the StreambotConnector function
+        "StreambotConnectorRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "Path": "/streambot/",
+                // #### Assume role policy
+                // Identifies that this role can be assumed by a Lambda function.
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        // #### Runtime policy
+                        // Defines the permissions that the Lambda function will
+                        // have once it has assumed this role.
+                        "PolicyName": "StreambotConnectorPolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                // - The Lambda function must be able to write
+                                // CloudWatch logs.
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                // - The Lambda function must be allowed to
+                                // manage event source mappings.
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:CreateEventSourceMapping",
+                                        "lambda:GetEventSourceMapping",
+                                        "lambda:UpdateEventSourceMapping",
+                                        "lambda:DeleteEventSourceMapping",
+                                        "lambda:ListEventSourceMappings"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        // ### StreambotConnector
+        // This function is intended to be run by a custom CloudFormation
+        // resource, and it is used to manage event source mappings between
+        // Kinesis/DynamoDB streams and Lambda functions.
+        "StreambotConnectorFunction": {
+            "Type" : "AWS::Lambda::Function",
+            "Properties" : {
+                // - Code: The location of Streambot's code for the desired
+                // GitSha/version. This file is publically available from a
+                // Mapbox bucket, or you could host the file in your own bucket
+                // if you wish. It is simply a `.zip` file containing
+                // Streambot's `index.js` file.
+                "Code" : {
+                    "S3Bucket": {
+                        "Fn::Join": [
+                            "-",
+                            [
+                                "mapbox",
+                                {
+                                    "Ref": "AWS::Region"
+                                }
+                            ]
+                        ]
+                    },
+                    "S3Key": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "release/streambot/",
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                ".zip"
+                            ]
+                        ]
+                    }
+                },
+                // - Handler: Identifies which function from Streambot's
+                // `index.js` this Lambda function should execute. This should always be set to `index.env`.
+                "Handler" : "index.connector",
+                // - Role: A reference to the IAM role defined above that allows
+                // this Lambda function to write files to S3.
+                "Role" : {
+                    "Fn::GetAtt": [
+                        "StreambotConnectorRole",
+                        "Arn"
+                    ]
+                },
+                // - Other properties as outlined in the
+                // [AWS documentation](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-function.html).
+                "Description" : "Create event source mappings between streams and Lambda functions",
+                "MemorySize" : 128,
+                "Runtime" : "nodejs",
+                "Timeout" : 10
+            }
         }
     },
     // ## Outputs
@@ -223,6 +335,24 @@ module.exports = {
             "Value": {
                 "Fn::GetAtt": [
                     "StreambotEnvFunction",
+                    "Arn"
+                ]
+            }
+        },
+        // ### StreambotConnector
+        // This will be referenced by custom CloudFormation resources in your
+        // service templates.
+        // - The name of the StreambotConnector function
+        "StreambotConnectorFunctionName": {
+            "Value": {
+                "Ref": "StreambotConnectorFunction"
+            }
+        },
+        // - The ARN of the StreambotConnector function
+        "StreambotConnectorFunctionArn": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "StreambotConnectorFunction",
                     "Arn"
                 ]
             }
