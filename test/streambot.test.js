@@ -113,4 +113,4 @@ test('sets client region', function(assert) {
     invokedFunctionArn: 'arn:aws:lambda:eu-west-1:000000000000:function:test',
     getRemainingTimeInMillis: function() { return 10000; }
   });
-})
+});
