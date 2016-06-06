@@ -4,7 +4,7 @@
   "description": "example of using streambot",
   "dependencies": {
     "srs": "0.4.8",
-    "streambot": "../"
+    "streambot": "/var/folders/6v/g9fjq5g12s7dh4r3717gkkrc0000gn/T/13aed682b82723c1"
   },
   "devDependencies": {
     "aws-sdk": "^2.1.23",

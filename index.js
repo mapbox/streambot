@@ -6,7 +6,6 @@ var crypto = require('crypto');
 
 module.exports = streambot;
 module.exports.env = manageEnv;
-module.exports.connector = manageConnector;
 module.exports.agent = new AgentKeepAlive.HttpsAgent({
   keepAlive: true,
   maxSockets: Math.ceil(require('os').cpus().length * 16),
@@ -16,20 +15,23 @@ module.exports.agent = new AgentKeepAlive.HttpsAgent({
 var tableName = module.exports.tableName = 'streambot-env';
 
 function streambot(service) {
-  var dynamodb = new AWS.DynamoDB({
-    region: 'us-east-1',
-    maxRetries: 1000,
-    httpOptions: {
-      timeout: 500,
-      agent: module.exports.agent
-    }
-  });
-
   return function streambot(event, context) {
     console.log('Start time: %s', (new Date()).toISOString());
     console.log('Event md5: %s', crypto.createHash('md5').update(JSON.stringify(event)).digest('hex'));
 
     var callback = context.done.bind(context);
+
+    var functionArn = context.invokedFunctionArn;
+    var functionRegion = functionArn.split(':')[3];
+
+    var dynamodb = new AWS.DynamoDB({
+      region: functionRegion,
+      maxRetries: 1000,
+      httpOptions: {
+        timeout: 500,
+        agent: module.exports.agent
+      }
+    });
 
     var getParams = {
       TableName: tableName,
@@ -57,7 +59,7 @@ function streambot(service) {
       service.call(context, event, callback);
     }).on('retry', function(res) {
       if (res.error) {
-        console.log('[failed request] dynamodb.getItem | %s | request id: %s | retries: %s',
+        console.log('[streambot request failed] dynamodb.getItem | %s | request id: %s | retries: %s',
           res.error.code, res.requestId, res.retryCount
         );
 
@@ -176,70 +178,5 @@ function manageEnv(event, context) {
     }
   }, function(err) {
     respond(err, null, event, context);
-  });
-}
-
-function manageConnector(event, context) {
-  if (!isCloudFormationEvent(event))
-    return context.done(null, 'ERROR: Invalid CloudFormation event');
-
-  var requiredProperties = [
-    'FunctionRegion',
-    'FunctionName',
-    'StreamArn'
-  ];
-
-  var valid = requiredProperties.reduce(function(valid, key) {
-    if (!(key in event.ResourceProperties)) return false;
-    return key;
-  }, true);
-
-  if (!valid)
-    return respond(new Error('Invalid StreambotConnector parameters'), null, event, context);
-
-  console.log(
-    '%s eventSourceMapping for %s: %s - %s',
-    event.RequestType,
-    event.StackId,
-    event.ResourceProperties.StreamArn,
-    event.ResourceProperties.FunctionName
-  );
-
-  var lambda = new AWS.Lambda({ region: event.ResourceProperties.FunctionRegion });
-  lambda.listEventSourceMappings({
-    EventSourceArn: event.ResourceProperties.StreamArn,
-    FunctionName: event.ResourceProperties.FunctionName
-  }, function(err, data) {
-    if (err && event.RequestType === 'Delete') return respond(null, null, event, context);
-    if (err) return respond(err, null, event, context);
-
-    var existingUUID = data.EventSourceMappings.length ?
-      data.EventSourceMappings[0].UUID : null;
-
-    if (event.RequestType === 'Delete') {
-      if (!existingUUID) return respond(null, null, event, context);
-      return lambda.deleteEventSourceMapping({ UUID: existingUUID }, function(err) {
-        respond(err, null, event, context);
-      });
-    }
-
-    var params = {
-      FunctionName: event.ResourceProperties.FunctionName,
-      BatchSize: event.ResourceProperties.BatchSize || 100,
-      Enabled: event.ResourceProperties.hasOwnProperty('Enabled') ?
-        event.ResourceProperties.Enabled : true
-    };
-
-    if (existingUUID) {
-      params.UUID = existingUUID;
-    } else {
-      params.StartingPosition = event.ResourceProperties.StartingPosition || 'TRIM_HORIZON';
-      params.EventSourceArn = event.ResourceProperties.StreamArn;
-    }
-
-    var action = existingUUID ? 'updateEventSourceMapping' : 'createEventSourceMapping';
-    lambda[action](params, function(err, data) {
-      respond(err, data ? { UUID: data.UUID } : null, event, context);
-    });
   });
 }
