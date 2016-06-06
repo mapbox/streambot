@@ -26,6 +26,10 @@ module.exports = {
         "StreambotEnvFunctionArn": {
             "Type": "String",
             "Description": "The ARN for the StreambotEnv function set up by the primary Streambot template"
+        },
+        "StreambotConnectorFunctionArn": {
+            "Type": "String",
+            "Description": "The ARN for the StreambotConnector function set up by the primary Streambot template"
         }
     },
     // ## Resources
@@ -36,7 +40,7 @@ module.exports = {
     // - A custom resource backed by the StreambotEnv global Lambda function
     // which writes the intended runtime configuration to record in DynamoDB
     // - The Lambda function that is the heart of the example service
-    // - An event source mapping linking the function to a kinesis stream
+    // - A custom resource backed by the StreambotConnector global Lambda
     // function which creates an event source mapping between the Kinesis
     // stream and the Lambda function
     "Resources": {
@@ -239,20 +243,33 @@ module.exports = {
             }
         },
         // ## Kinesis-Lambda connector
-        // http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-lambda-eventsourcemapping.html
+        // This custom resource is backed by a globally-defined Lambda function
+        // (see Streambot's primary template). It creates an event source
+        // mapping between the Stream and the Function.
         "Connector": {
-            "Type": "AWS::Lambda::EventSourceMapping",
+            "Type": "Custom::StreambotConnector",
             // By depending on the configuration, we can make sure that stream
             // events are not fed to the Lambda function before the runtime
             // configuration is ready.
             "DependsOn": "Config",
             "Properties": {
+                // - ServiceToken: after setting up the primary Streambot
+                // template, you must provide the ARN to the StreambotConnector
+                // function it created.
+                "ServiceToken": {
+                    "Ref": "StreambotConnectorFunctionArn"
+                },
+                // - FunctionRegion: the region in which the primary Lambda
+                // function runs.
+                "FunctionRegion": {
+                    "Ref": "AWS::Region"
+                },
                 // - FunctionName: the name of the primary Lambda function.
                 "FunctionName": {
                     "Ref": "Function"
                 },
-                // - EventSourceArn: the ARN for the Stream
-                "EventSourceArn": {
+                // - StreamArn: the ARN for the Stream
+                "StreamArn": {
                     "Fn::Join": [
                         "",
                         [
@@ -275,8 +292,7 @@ module.exports = {
                 // of records per Lambda Invocation), `StartingPosition` (Stream
                 // iterator type), and `Enabled`.
                 "BatchSize": 1,
-                "StartingPosition": "TRIM_HORIZON",
-                "Enabled": true
+                "StartingPosition": "TRIM_HORIZON"
             }
         }
     },

@@ -6,6 +6,7 @@ var crypto = require('crypto');
 
 module.exports = streambot;
 module.exports.env = manageEnv;
+module.exports.connector = manageConnector;
 module.exports.agent = new AgentKeepAlive.HttpsAgent({
   keepAlive: true,
   maxSockets: Math.ceil(require('os').cpus().length * 16),
@@ -178,5 +179,70 @@ function manageEnv(event, context) {
     }
   }, function(err) {
     respond(err, null, event, context);
+  });
+}
+
+function manageConnector(event, context) {
+  if (!isCloudFormationEvent(event))
+    return context.done(null, 'ERROR: Invalid CloudFormation event');
+
+  var requiredProperties = [
+    'FunctionRegion',
+    'FunctionName',
+    'StreamArn'
+  ];
+
+  var valid = requiredProperties.reduce(function(valid, key) {
+    if (!(key in event.ResourceProperties)) return false;
+    return key;
+  }, true);
+
+  if (!valid)
+    return respond(new Error('Invalid StreambotConnector parameters'), null, event, context);
+
+  console.log(
+    '%s eventSourceMapping for %s: %s - %s',
+    event.RequestType,
+    event.StackId,
+    event.ResourceProperties.StreamArn,
+    event.ResourceProperties.FunctionName
+  );
+
+  var lambda = new AWS.Lambda({ region: event.ResourceProperties.FunctionRegion });
+  lambda.listEventSourceMappings({
+    EventSourceArn: event.ResourceProperties.StreamArn,
+    FunctionName: event.ResourceProperties.FunctionName
+  }, function(err, data) {
+    if (err && event.RequestType === 'Delete') return respond(null, null, event, context);
+    if (err) return respond(err, null, event, context);
+
+    var existingUUID = data.EventSourceMappings.length ?
+      data.EventSourceMappings[0].UUID : null;
+
+    if (event.RequestType === 'Delete') {
+      if (!existingUUID) return respond(null, null, event, context);
+      return lambda.deleteEventSourceMapping({ UUID: existingUUID }, function(err) {
+        respond(err, null, event, context);
+      });
+    }
+
+    var params = {
+      FunctionName: event.ResourceProperties.FunctionName,
+      BatchSize: event.ResourceProperties.BatchSize || 100,
+      Enabled: event.ResourceProperties.hasOwnProperty('Enabled') ?
+        event.ResourceProperties.Enabled : true
+    };
+
+    if (existingUUID) {
+      params.UUID = existingUUID;
+    } else {
+      params.StartingPosition = event.ResourceProperties.StartingPosition || 'TRIM_HORIZON';
+      params.EventSourceArn = event.ResourceProperties.StreamArn;
+    }
+
+    var action = existingUUID ? 'updateEventSourceMapping' : 'createEventSourceMapping';
+    lambda[action](params, function(err, data) {
+      respond(err, data ? { UUID: data.UUID } : null, event, context);
+    });
   });
 }

@@ -140,6 +140,9 @@ function moreTests() {
     EventPrefix: 'example-records/' + testId,
     StreambotEnvFunctionArn: primaryStack.description.Outputs.filter(function(output) {
       return output.OutputKey === 'StreambotEnvFunctionArn';
+    })[0].OutputValue,
+    StreambotConnectorFunctionArn: primaryStack.description.Outputs.filter(function(output) {
+      return output.OutputKey === 'StreambotConnectorFunctionArn';
     })[0].OutputValue
   });
 
