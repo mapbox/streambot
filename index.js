@@ -141,8 +141,11 @@ function respond(err, data, event, context) {
 }
 
 function manageEnv(event, context) {
+  var functionArn = context.invokedFunctionArn;
+  var functionRegion = functionArn.split(':')[3];
+
   var dynamodb = new AWS.DynamoDB({
-    region: 'us-east-1',
+    region: functionRegion,
     maxRetries: 1000,
     httpOptions: {
       timeout: 500,
