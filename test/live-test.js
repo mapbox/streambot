@@ -133,10 +133,11 @@ function moreTests() {
 
   // Deploy the example stack
   var exampleTemplate = require('../streambot-example/streambot-example.template.js');
-  exampleTemplate.Resources.Role.Properties.Policies[0].PolicyDocument.Statement[1].Resource['Fn::Join'][1][2] = ':table/' + tableName;
+  exampleTemplate.Resources.Role.Properties.Policies[0].PolicyDocument.Statement[1].Resource['Fn::Join'][1][4] = ':table/' + tableName;
   exampleStack.start(exampleTemplate, {
     GitSha: testId,
     EventBucket: 'mapbox',
+    EventBucketRegion: 'us-east-1',
     EventPrefix: 'example-records/' + testId,
     StreambotEnvFunctionArn: primaryStack.description.Outputs.filter(function(output) {
       return output.OutputKey === 'StreambotEnvFunctionArn';

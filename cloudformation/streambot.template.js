@@ -103,7 +103,7 @@ module.exports = {
                                             "", [
                                                 "arn:aws:dynamodb:",
                                                 {
-                                                    "Ref": "StreambotEnvTable"
+                                                    "Ref": "AWS::Region"
                                                 },
                                                 ":",
                                                 {

@@ -5,24 +5,20 @@
 var AWS = require('aws-sdk');
 var streambot = require('streambot');
 
-// ## Runtime configuration
-// The S3 URL where runtime configuration for this example is stored. This is defined in the streambot-example.template.
-exampleEnv = 's3://mapbox/envs/streambot-example/example';
-
 // ## The Streambot wrapper
-// To use Streambot, we pass it the function that defines our work, as well as the optional S3 URL for runtime configuration.
+// To use Streambot, we pass it the function that defines our work.
 // This returns a function which is what Lambda executes. Hence, the `Handler` we use in streambot-example.template is `index.streambot`.
-module.exports.streambot = streambot(exampleService, exampleEnv);
+module.exports.streambot = streambot(exampleService);
 
 // ## The work to do
 // Streambot will call your function, passing two arguments:
 // - event: the event that triggered this Lambda invocation
 // - callback: a function to handle the outcome of your work, using the familiar Node.js pattern of err, response.
 function exampleService(event, callback) {
-  var s3 = new AWS.S3();
-
   // Before calling your function, Streambot will have loaded configuration from the provided URL into the environment.
   console.log(process.env);
+
+  var s3 = new AWS.S3({ region: process.env.EventBucketRegion });
 
   // Pluck the first Kinesis record from the given event, and run it
   var record = event.Records.shift();
