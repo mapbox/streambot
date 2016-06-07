@@ -191,12 +191,22 @@ module.exports = {
                 // - Code: You must upload your Lambda function as a .zip file
                 // to S3, and refer to it here.
                 "Code" : {
-                    "S3Bucket": "mapbox",
+                    "S3Bucket": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "mapbox-",
+                                {
+                                    "Ref": "AWS::Region"
+                                }
+                            ]
+                        ]
+                    },
                     "S3Key": {
                         "Fn::Join": [
                             "",
                             [
-                                "apps/streambot/",
+                                "release/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
