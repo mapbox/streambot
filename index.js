@@ -41,7 +41,7 @@ function streambot(service) {
 
     dynamodb.getItem(getParams, function(err, data) {
       if (err) {
-        console.log('[error] Failed to load environment: %s', err.message);
+        console.log('[error] Failed to load environment in %s: %s', functionRegion, err.message);
         return context.fail(err);
       }
 
