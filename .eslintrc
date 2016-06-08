@@ -1,3 +1,17 @@
 {
-  "extends": "eslint-config-unstyled"
+  "rules": {
+    "indent": [2, 2],
+    "quotes": [2, "single"],
+    "no-console": [0],
+    "semi": [2, "always"]
+  },
+  "env": {
+      "node": true
+  },
+  "globals": {
+      "process": true,
+      "module": true,
+      "require": true
+  },
+  "extends": "eslint:recommended"
 }

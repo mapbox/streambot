@@ -16,20 +16,23 @@ module.exports.agent = new AgentKeepAlive.HttpsAgent({
 var tableName = module.exports.tableName = 'streambot-env';
 
 function streambot(service) {
-  var dynamodb = new AWS.DynamoDB({
-    region: 'us-east-1',
-    maxRetries: 1000,
-    httpOptions: {
-      timeout: 500,
-      agent: module.exports.agent
-    }
-  });
-
   return function streambot(event, context) {
     console.log('Start time: %s', (new Date()).toISOString());
     console.log('Event md5: %s', crypto.createHash('md5').update(JSON.stringify(event)).digest('hex'));
 
     var callback = context.done.bind(context);
+
+    var functionArn = context.invokedFunctionArn;
+    var functionRegion = functionArn.split(':')[3];
+
+    var dynamodb = new AWS.DynamoDB({
+      region: functionRegion,
+      maxRetries: 1000,
+      httpOptions: {
+        timeout: 500,
+        agent: module.exports.agent
+      }
+    });
 
     var getParams = {
       TableName: tableName,
@@ -38,7 +41,7 @@ function streambot(service) {
 
     dynamodb.getItem(getParams, function(err, data) {
       if (err) {
-        console.log('[error] Failed to load environment: %s', err.message);
+        console.log('[error] Failed to load environment in %s: %s', functionRegion, err.message);
         return context.fail(err);
       }
 
@@ -57,7 +60,7 @@ function streambot(service) {
       service.call(context, event, callback);
     }).on('retry', function(res) {
       if (res.error) {
-        console.log('[failed request] dynamodb.getItem | %s | request id: %s | retries: %s',
+        console.log('[streambot request failed] dynamodb.getItem | %s | request id: %s | retries: %s',
           res.error.code, res.requestId, res.retryCount
         );
 
@@ -138,8 +141,11 @@ function respond(err, data, event, context) {
 }
 
 function manageEnv(event, context) {
+  var functionArn = context.invokedFunctionArn;
+  var functionRegion = functionArn.split(':')[3];
+
   var dynamodb = new AWS.DynamoDB({
-    region: 'us-east-1',
+    region: functionRegion,
     maxRetries: 1000,
     httpOptions: {
       timeout: 500,

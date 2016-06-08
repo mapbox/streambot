@@ -5,6 +5,7 @@ sudo: false
 before_install:
 - pip install --user awscli && export PATH=$PATH:~/.local/bin/
 script:
+- npm install -g docco
 - ./bin/build
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-us-east-1/release/streambot/${TRAVIS_COMMIT}.zip
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-us-west-2/release/streambot/${TRAVIS_COMMIT}.zip

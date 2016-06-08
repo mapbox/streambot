@@ -19,6 +19,10 @@ module.exports = {
             "Type": "String",
             "Description": "The S3 bucket where events will be written"
         },
+        "EventBucketRegion": {
+            "Type": "String",
+            "Description": "The region for the S3 bucket where events will be written"
+        },
         "EventPrefix": {
             "Type": "String",
             "Description": "The S3 prefix where events will be written"
@@ -80,6 +84,7 @@ module.exports = {
                         // have once it has assumed this role.
                         "PolicyName": "StreambotExamplePolicy",
                         "PolicyDocument": {
+                            "Version":"2012-10-17",
                             "Statement": [
                                 // - The Lambda function must be able to write
                                 // CloudWatch logs.
@@ -101,7 +106,11 @@ module.exports = {
                                         "Fn::Join": [
                                             "",
                                             [
-                                                "arn:aws:dynamodb:us-east-1:",
+                                                "arn:aws:dynamodb:",
+                                                {
+                                                    "Ref": "AWS::Region"
+                                                },
+                                                ":",
                                                 {
                                                     "Ref": "AWS::AccountId"
                                                 },
@@ -182,12 +191,22 @@ module.exports = {
                 // - Code: You must upload your Lambda function as a .zip file
                 // to S3, and refer to it here.
                 "Code" : {
-                    "S3Bucket": "mapbox",
+                    "S3Bucket": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "mapbox-",
+                                {
+                                    "Ref": "AWS::Region"
+                                }
+                            ]
+                        ]
+                    },
                     "S3Key": {
                         "Fn::Join": [
                             "",
                             [
-                                "apps/streambot/",
+                                "release/streambot/",
                                 {
                                     "Ref": "GitSha"
                                 },
@@ -236,6 +255,9 @@ module.exports = {
                 // configuration file as key-value pairs.
                 "EventBucket": {
                     "Ref": "EventBucket"
+                },
+                "EventBucketRegion": {
+                    "Ref": "EventBucketRegion"
                 },
                 "EventPrefix": {
                     "Ref": "EventPrefix"
