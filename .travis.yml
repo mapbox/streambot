@@ -11,19 +11,27 @@ script:
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-us-west-2/release/streambot/${TRAVIS_COMMIT}.zip
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-eu-west-1/release/streambot/${TRAVIS_COMMIT}.zip
 - aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-ap-northeast-1/release/streambot/${TRAVIS_COMMIT}.zip
+- aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-eu-central-1/release/streambot/${TRAVIS_COMMIT}.zip
+- aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-ap-southeast-2/release/streambot/${TRAVIS_COMMIT}.zip
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-us-east-1/release/streambot/$(git describe --tags --exact-match).zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-us-west-2/release/streambot/$(git describe --tags --exact-match).zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-eu-west-1/release/streambot/$(git describe --tags --exact-match).zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-ap-northeast-1/release/streambot/$(git describe --tags --exact-match).zip; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-eu-central-1/release/streambot/$(git describe --tags --exact-match).zip; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read build/streambot.zip s3://mapbox-ap-southeast-2/release/streambot/$(git describe --tags --exact-match).zip; fi
 - ./bin/bundle ./streambot-example
 - aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-us-east-1/release/streambot/${TRAVIS_COMMIT}-example.zip
 - aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-us-west-2/release/streambot/${TRAVIS_COMMIT}-example.zip
 - aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-eu-west-1/release/streambot/${TRAVIS_COMMIT}-example.zip
 - aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-ap-northeast-1/release/streambot/${TRAVIS_COMMIT}-example.zip
+- aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-eu-central-1/release/streambot/${TRAVIS_COMMIT}-example.zip
+- aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-ap-southeast-2/release/streambot/${TRAVIS_COMMIT}-example.zip
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-us-east-1/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-us-west-2/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-eu-west-1/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
 - if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-ap-northeast-1/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-eu-central-1/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
+- if git describe --tags --exact-match 2> /dev/null; then aws s3 cp --acl=public-read streambot-example/build/bundle.zip s3://mapbox-ap-southeast-2/release/streambot/$(git describe --tags --exact-match)-example.zip; fi
 - npm test
 env:
   global:
