@@ -27,7 +27,7 @@ function streambot(service) {
 
     var dynamodb = new AWS.DynamoDB({
       region: functionRegion,
-      maxRetries: 1000,
+      maxRetries: 1,
       httpOptions: {
         timeout: 500,
         agent: module.exports.agent
@@ -58,6 +58,16 @@ function streambot(service) {
       });
 
       service.call(context, event, callback);
+    }).on('retry', function(res) {
+      if (res.error) {
+        console.log('[streambot request failed] dynamodb.getItem | %s | request id: %s | retries: %s',
+          res.error.code, res.requestId, res.retryCount
+        );
+
+        // Other errors automatically retryable by aws-sdk:
+        // https://github.com/aws/aws-sdk-js/blob/d20ddadd7ac39b81f4262cacd1ad29813988bf84/lib/service.js#L314-L320
+        if (res.error.name === 'TimeoutError') res.error.retryable = true;
+      }
     });
   };
 }
