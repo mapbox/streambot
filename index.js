@@ -16,6 +16,7 @@ module.exports.agent = new AgentKeepAlive.HttpsAgent({
 var tableName = module.exports.tableName = 'streambot-env';
 
 function streambot(service) {
+  console.log('service ', service);
   var dynamodb = new AWS.DynamoDB({
     region: 'us-east-1',
     maxRetries: 1000,
