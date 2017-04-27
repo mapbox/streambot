@@ -8,7 +8,7 @@ audit
   .then(data =>
     process.stdout.write(
       data
-        .map(stack => `${stack.Summary.StackName} ${stack.Region}`)
+        .map(stack => `${stack.Summary.StackName} | ${stack.Region}`)
         .join('\n') + '\n'
     )
   )
