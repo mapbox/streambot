@@ -27,6 +27,7 @@
     "zipfile": "^0.5.7"
   },
   "dependencies": {
+    "@mapbox/cfn-template-audit": "^1.0.0",
     "agentkeepalive": "^2.0.3"
   }
 }
