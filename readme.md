@@ -4,6 +4,35 @@
 
 As of 11/18/2016, AWS introduced [a native mechanism for providing environment variables to lambda functions](https://aws.amazon.com/about-aws/whats-new/2016/11/aws-lambda-supports-environment-variables/), which is also [supported by CloudFormation](https://aws.amazon.com/about-aws/whats-new/2016/11/aws-cloudformation-supports-aws-serverless-application-model-aws-lambda-environment-variables-and-new-cli-commands/). These features negate the gap that streambot existed to fill. You **should not** use streambot to configure new Lambda functions.
 
+### A Dear Bot's Farewell
+
+```
+oh faithful streambot
+supplying runtime config
+to stateless functions
+
+without fail you kept
+functions wrapped with care, and safe
+from context dot done
+
+a misnomer, sure
+your creator may chuckle
+but things change, you know
+
+now we bid adieu
+to that one point of failure
+the streambot table
+
+event source mappings
+service tokens, streambot envs
+farewell our dear bot
+
+no more consumers
+deprecation awaits you
+we'll see you never
+```
+_by @emilymcafee_
+
 ---
 
 [![Build Status](https://travis-ci.org/mapbox/streambot.svg?branch=master)](https://travis-ci.org/mapbox/streambot)
